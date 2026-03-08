@@ -1,7 +1,10 @@
-# OpenClaw Machine Setup
+# OpenClaw Machine Setup — macOS
 
-Desired state for every machine running an OpenClaw gateway. Each section describes
-**what correct looks like**, how to **verify** it, and how to **fix** drift.
+macOS-specific desired state for machines running an OpenClaw gateway. Each section
+describes **what correct looks like**, how to **verify** it, and how to **fix** drift.
+
+**Platform:** This document covers macOS only. For Linux machines, see
+`machine-setup-linux.md`.
 
 **How to use this document:**
 
@@ -114,9 +117,9 @@ truth for Homebrew packages across the fleet.
 
 - All Brewfile packages installed and up to date
 
-**Verify:** `brew bundle check --file ~/.openclaw-config/Brewfile`
+**Verify:** `brew bundle check --file ~/src/openclaw-config/Brewfile`
 
-**Fix:** `brew bundle --file ~/.openclaw-config/Brewfile`
+**Fix:** `brew bundle --file ~/src/openclaw-config/Brewfile`
 
 ### Node.js
 
@@ -131,7 +134,7 @@ The gateway runs on Node.js. Install nvm via Homebrew for version management.
 **Fix:**
 
 ```bash
-brew bundle --file ~/.openclaw-config/Brewfile   # installs nvm
+brew bundle --file ~/src/openclaw-config/Brewfile   # installs nvm
 nvm install node
 ```
 
@@ -226,7 +229,7 @@ Two launchd agents handle backup automation:
 | Backup | `ai.openclaw.workspace-backup` | Every 4 hours        | Incremental backup + prune      |
 | Verify | `ai.openclaw.backup-verify`    | Weekly (Sunday 4 AM) | Integrity check (10% data read) |
 
-Plist files are in `~/.openclaw-config/devops/`:
+Plist files are in `~/src/openclaw-config/devops/mac/`:
 
 - `ai.openclaw.workspace-backup.plist`
 - `ai.openclaw.backup-verify.plist`
@@ -234,8 +237,8 @@ Plist files are in `~/.openclaw-config/devops/`:
 **Fix (deploy schedule):**
 
 ```bash
-cp ~/.openclaw-config/devops/ai.openclaw.workspace-backup.plist ~/Library/LaunchAgents/
-cp ~/.openclaw-config/devops/ai.openclaw.backup-verify.plist ~/Library/LaunchAgents/
+cp ~/src/openclaw-config/devops/mac/ai.openclaw.workspace-backup.plist ~/Library/LaunchAgents/
+cp ~/src/openclaw-config/devops/mac/ai.openclaw.backup-verify.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/ai.openclaw.workspace-backup.plist
 launchctl load ~/Library/LaunchAgents/ai.openclaw.backup-verify.plist
 ```
@@ -393,14 +396,15 @@ Every workspace at `~/.openclaw/workspace/` must contain these files:
 Each machine should have the openclaw-config repository cloned locally for updates and
 health check reference.
 
-- Location: `~/.openclaw-config`
+- Location: `~/src/openclaw-config`
 - Remote: the upstream openclaw-config repository
 - Should be on the default branch and up to date
 
-**Verify:** `test -f ~/.openclaw-config/VERSION && git -C ~/.openclaw-config status`
+**Verify:**
+`test -f ~/src/openclaw-config/VERSION && git -C ~/src/openclaw-config status`
 
 **Fix:**
-`git clone https://github.com/TechNickAI/openclaw-config.git ~/.openclaw-config`
+`git clone https://github.com/TechNickAI/openclaw-config.git ~/src/openclaw-config`
 
 ---
 
@@ -497,7 +501,7 @@ echo "permissions: $(stat -f '%Lp' ~/.openclaw)" && \
 echo "=== network ===" && \
 echo "tailscale: $(tailscale status --self 2>/dev/null | head -1 || echo 'NOT RUNNING')" && \
 echo "=== software ===" && \
-echo "brewfile: $(brew bundle check --quiet --file ~/.openclaw-config/Brewfile 2>/dev/null && echo 'ok' || echo 'DRIFT')" && \
+echo "brewfile: $(brew bundle check --quiet --file ~/src/openclaw-config/Brewfile 2>/dev/null && echo 'ok' || echo 'DRIFT')" && \
 echo "node: $(node --version 2>/dev/null || echo 'NOT FOUND')" && \
 echo "openclaw: $(openclaw --version 2>/dev/null || echo 'NOT FOUND')" && \
 echo "pnpm: $(pnpm --version 2>/dev/null || echo 'NOT FOUND')" && \
@@ -511,7 +515,7 @@ echo "backup-freshness: $(RESTIC_PASSWORD_FILE=~/.openclaw/restic-password resti
 echo "=== workspace ===" && \
 ls ~/.openclaw/workspace/{AGENTS,SOUL,USER,MEMORY,IDENTITY,HEARTBEAT,TOOLS,BOOT}.md >/dev/null 2>&1 && echo "core files: all present" || echo "core files: MISSING" && \
 ls -d ~/.openclaw/workspace/memory/{daily,decisions,imports,people,projects,topics} >/dev/null 2>&1 && echo "memory dirs: all present" || echo "memory dirs: MISSING" && \
-echo "config-repo: $(test -f ~/.openclaw-config/VERSION && echo 'present' || echo 'MISSING')" && \
+echo "config-repo: $(test -f ~/src/openclaw-config/VERSION && echo 'present' || echo 'MISSING')" && \
 echo "health-check-admin: $(test -f ~/.openclaw/health-check-admin && echo 'present' || echo 'MISSING')" && \
 echo "=== diagnostics ===" && \
 echo "doctor: $(openclaw doctor --non-interactive 2>&1 | tail -1)"

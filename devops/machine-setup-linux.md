@@ -1,7 +1,7 @@
 # OpenClaw Machine Setup — Linux
 
-Linux-specific setup for OpenClaw gateway machines. Read alongside
-`machine-setup.md` (Mac/shared concepts).
+Linux-specific setup for OpenClaw gateway machines. Read alongside `machine-setup.md`
+(Mac/shared concepts).
 
 **How to use this document:**
 
@@ -34,8 +34,8 @@ sudo tailscale up
 
 ### SSH
 
-EC2 instances have SSH enabled by default. Ensure the fleet SSH key
-(`~/.ssh/id_ed25519` on nicks-macly) is in `~/.ssh/authorized_keys`.
+EC2 instances have SSH enabled by default. Ensure the fleet SSH key (`~/.ssh/id_ed25519`
+on nicks-macly) is in `~/.ssh/authorized_keys`.
 
 **Verify from master:** `ssh <hostname> "echo ok"`
 
@@ -45,8 +45,8 @@ EC2 instances have SSH enabled by default. Ensure the fleet SSH key
 
 ### Power Management
 
-EC2 instances are always-on — no sleep settings needed. Skip the `pmset`
-section from `machine-setup.md` entirely.
+EC2 instances are always-on — no sleep settings needed. Skip the `pmset` section from
+`machine-setup.md` entirely.
 
 **Verify:** The instance is reachable. That's it.
 
@@ -79,7 +79,8 @@ sudo apt install -y $(grep -v '^#' ~/src/openclaw-config/devops/apt-packages.txt
 
 Ubuntu ships with a recent Node.js via apt. No nvm needed on server machines.
 
-- Node.js installed via apt (Ubuntu 24.04 includes Node 18+; use NodeSource PPA for Node 22+)
+- Node.js installed via apt (Ubuntu 24.04 includes Node 18+; use NodeSource PPA for Node
+  22+)
 - `node` and `npm` available in PATH
 - npm global prefix set to `~/.npm-global` (avoids sudo for global installs)
 
@@ -118,8 +119,8 @@ npm install -g openclaw@latest pnpm @anthropic-ai/claude-code
 
 ## Shell Environment
 
-All installed tools must be in PATH for **non-interactive** shells — SSH commands
-and systemd services, not just interactive terminals.
+All installed tools must be in PATH for **non-interactive** shells — SSH commands and
+systemd services, not just interactive terminals.
 
 These paths must be in PATH for all shell contexts:
 
@@ -194,10 +195,10 @@ RESTIC_PASSWORD_FILE=~/.openclaw/restic-password restic init --repo ~/openclaw-b
 
 Two systemd timer pairs handle backup automation:
 
-| Timer | Schedule | Purpose |
-|-------|----------|---------|
-| `openclaw-workspace-backup.timer` | Every 4 hours | Incremental backup + prune |
-| `openclaw-backup-verify.timer` | Weekly (Sunday 4 AM) | Integrity check (10% data read) |
+| Timer                             | Schedule             | Purpose                         |
+| --------------------------------- | -------------------- | ------------------------------- |
+| `openclaw-workspace-backup.timer` | Every 4 hours        | Incremental backup + prune      |
+| `openclaw-backup-verify.timer`    | Weekly (Sunday 4 AM) | Integrity check (10% data read) |
 
 Unit files are in `~/src/openclaw-config/devops/linux/`.
 
@@ -227,8 +228,8 @@ systemctl --user list-timers | grep openclaw
 
 ## Health Check
 
-The health check runs every 30 minutes via systemd timer and invokes Claude Code
-with `devops/health-check.md` as the prompt.
+The health check runs every 30 minutes via systemd timer and invokes Claude Code with
+`devops/health-check.md` as the prompt.
 
 Unit files: `~/src/openclaw-config/devops/linux/openclaw-health-check.*`
 
@@ -250,8 +251,8 @@ systemctl --user list-timers | grep health-check
 
 ### health-check-admin file
 
-Create `~/.openclaw/health-check-admin` with two lines — admin name and
-Telegram notification command:
+Create `~/.openclaw/health-check-admin` with two lines — admin name and Telegram
+notification command:
 
 ```
 Nick
@@ -268,16 +269,16 @@ openclaw message send --channel telegram --target "<NICK_TELEGRAM_ID>" --message
 
 Every workspace at the configured workspace path must contain:
 
-| File | Purpose |
-|------|---------|
-| `AGENTS.md` | Operating instructions |
-| `SOUL.md` | Personality definition |
-| `USER.md` | Human profile |
-| `MEMORY.md` | Always-loaded context |
-| `IDENTITY.md` | Quick reference card |
-| `HEARTBEAT.md` | Periodic check config |
-| `TOOLS.md` | Local environment notes |
-| `BOOT.md` | Startup routine |
+| File           | Purpose                 |
+| -------------- | ----------------------- |
+| `AGENTS.md`    | Operating instructions  |
+| `SOUL.md`      | Personality definition  |
+| `USER.md`      | Human profile           |
+| `MEMORY.md`    | Always-loaded context   |
+| `IDENTITY.md`  | Quick reference card    |
+| `HEARTBEAT.md` | Periodic check config   |
+| `TOOLS.md`     | Local environment notes |
+| `BOOT.md`      | Startup routine         |
 
 **Verify:** `ls <workspace>/{AGENTS,SOUL,USER,MEMORY,IDENTITY,HEARTBEAT,TOOLS,BOOT}.md`
 
@@ -294,19 +295,21 @@ Every workspace at the configured workspace path must contain:
 ### Workspace Path
 
 Configure `agents.defaults.workspace` in `~/.openclaw/openclaw.json` as
-`~/.openclaw/workspace`. This keeps the workspace inside the directory the
-backup service already covers. If the workspace lives elsewhere (e.g.
-`~/openclaw/workspace` — the wizard default), the backup service will detect
-and include it, but the preferred layout is inside `~/.openclaw/`.
+`~/.openclaw/workspace`. This keeps the workspace inside the directory the backup
+service already covers. If the workspace lives elsewhere (e.g. `~/openclaw/workspace` —
+the wizard default), the backup service will detect and include it, but the preferred
+layout is inside `~/.openclaw/`.
 
 ### Config Repo
 
 - Location: `~/src/openclaw-config`
 - Remote: the upstream openclaw-config repository
 
-**Verify:** `test -f ~/src/openclaw-config/VERSION && git -C ~/src/openclaw-config status`
+**Verify:**
+`test -f ~/src/openclaw-config/VERSION && git -C ~/src/openclaw-config status`
 
-**Fix:** `git clone https://github.com/TechNickAI/openclaw-config.git ~/src/openclaw-config`
+**Fix:**
+`git clone https://github.com/TechNickAI/openclaw-config.git ~/src/openclaw-config`
 
 ---
 
