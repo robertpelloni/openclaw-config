@@ -29,10 +29,12 @@ cd "$CONFIG_REPO" || exit 1
 
 echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) [$(hostname -s)] health check starting" >> "$LOG"
 
+CLAUDE_EXIT=0
 "$HOME/.local/bin/claude" --print --dangerously-skip-permissions --max-turns 25 \
-  -p "$(cat "$PROMPT_FILE")" >> "$LOG" 2&gt;&amp;1
+  -p "$(cat "$PROMPT_FILE")" >> "$LOG" 2&gt;&amp;1 || CLAUDE_EXIT=$?
 
-echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) [$(hostname -s)] health check done (exit $?)" >> "$LOG"
+echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) [$(hostname -s)] health check done (exit $CLAUDE_EXIT)" >> "$LOG"
+exit $CLAUDE_EXIT
         </string>
     </array>
 

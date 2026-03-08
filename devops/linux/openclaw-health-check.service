@@ -13,7 +13,6 @@ ExecStart=/bin/bash -c '\
   CONFIG_REPO="$HOME/src/openclaw-config"; \
   LOG="$HOME/.openclaw/health-check-cron.log"; \
   PROMPT_FILE="$CONFIG_REPO/devops/health-check.md"; \
-  mkdir -p /tmp/openclaw; \
   if [ ! -f "$PROMPT_FILE" ]; then \
     echo "$(date -u +%%Y-%%m-%%dT%%H:%%M:%%SZ) [$(hostname -s)] ERROR: health-check.md not found at $PROMPT_FILE" >> "$LOG"; \
     exit 1; \
