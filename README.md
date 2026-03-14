@@ -1,12 +1,11 @@
 <p align="center">
   <img src="https://img.shields.io/badge/OpenClaw-Config-D97757?style=for-the-badge&labelColor=1a1a2e" alt="OpenClaw Config">
   <br><br>
-  <a href="https://github.com/TechNickAI/openclaw-config/releases"><img src="https://img.shields.io/badge/version-0.13.0-D97757?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/TechNickAI/openclaw-config/releases"><img src="https://img.shields.io/badge/version-0.14.0-D97757?style=flat-square" alt="Version"></a>
   <img src="https://img.shields.io/badge/python-3.11+-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
   <a href="https://github.com/TechNickAI/openclaw-config/stargazers"><img src="https://img.shields.io/github/stars/TechNickAI/openclaw-config?style=flat-square&color=D97757" alt="Stars"></a>
   <img src="https://img.shields.io/badge/skills-12-blueviolet?style=flat-square" alt="Skills">
-  <img src="https://img.shields.io/badge/workflows-4-blueviolet?style=flat-square" alt="Workflows">
   <a href="https://github.com/TechNickAI/openclaw-config/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome"></a>
 </p>
 
@@ -181,6 +180,64 @@ What gets remembered is filtered through four criteria:
   irreversible ones.
 - **Prose over config** — Language models reason better in natural language than in JSON
   schemas.
+
+## DevOps
+
+Infrastructure-as-code for running OpenClaw in production. Supports macOS (launchd) and
+Linux (systemd) with the same operational model.
+
+### Health Monitoring
+
+`devops/health-check.md` is an autonomous agent that runs every 30 minutes via cron. It
+checks gateway liveness, model catalog health, cron job status, channel connectivity,
+disk/memory, and log health. It can fix routine issues (restart services, kill hung
+processes, clean old logs) and escalates to the fleet owner when things break that were
+working.
+
+Health checks follow a **silent success** model — the admin only gets notified when
+something is wrong or was fixed, never for routine health.
+
+### Machine Setup
+
+Desired-state specifications that define what a healthy OpenClaw machine looks like:
+
+| File                            | Platform | What it covers                                      |
+| ------------------------------- | -------- | --------------------------------------------------- |
+| `devops/machine-setup.md`       | macOS    | Power management, Node, launchd services, backups   |
+| `devops/machine-setup-linux.md` | Linux    | EC2 setup, systemd services, SSH, package deps      |
+| `devops/apt-packages.txt`       | Linux    | Required packages (jq, restic, tmux, git, bat, etc) |
+
+Each section follows the pattern: **desired state** → **verify command** → **fix
+command**. The health check agent uses these specs for drift detection.
+
+### Notification Routing
+
+`devops/notification-routing.md` defines a two-lane model:
+
+- **Admin lane** — System health alerts go to the fleet owner (e.g., "gateway down on
+  Ali's machine")
+- **User lane** — Cron outputs go to the host person (e.g., EOD briefing, email alerts)
+
+Lanes never mix. Health check agents use `delivery.mode: "none"` and self-notify the
+admin directly.
+
+### Automation Services
+
+Three services run on every OpenClaw machine, defined as launchd plists (`devops/mac/`)
+or systemd units (`devops/linux/`):
+
+| Service              | Schedule         | Purpose                                                       |
+| -------------------- | ---------------- | ------------------------------------------------------------- |
+| **health-check**     | Every 30 min     | Run health-check.md agent via Claude CLI                      |
+| **workspace-backup** | Every 4 hours    | Restic backup of ~/.openclaw + workspace (7d/4w/6m retention) |
+| **backup-verify**    | Weekly (Sun 4am) | Restic integrity check (10% of data)                          |
+
+### Fleet Management
+
+For multi-machine deployments, the `/fleet` command manages remote OpenClaw instances
+from a master machine. Fleet state lives in `~/openclaw-fleet/` (one markdown file per
+server). The `gateway-restart` skill ensures graceful restarts that don't interrupt
+active conversations.
 
 ## Development
 
