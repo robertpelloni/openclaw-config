@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/OpenClaw-Config-D97757?style=for-the-badge&labelColor=1a1a2e" alt="OpenClaw Config">
   <br><br>
-  <a href="https://github.com/TechNickAI/openclaw-config/releases"><img src="https://img.shields.io/badge/version-0.15.0-D97757?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/TechNickAI/openclaw-config/releases"><img src="https://img.shields.io/badge/version-0.16.0-D97757?style=flat-square" alt="Version"></a>
   <img src="https://img.shields.io/badge/python-3.11+-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
   <a href="https://github.com/TechNickAI/openclaw-config/stargazers"><img src="https://img.shields.io/github/stars/TechNickAI/openclaw-config?style=flat-square&color=D97757" alt="Stars"></a>
@@ -32,8 +32,9 @@ Everything is markdown and Python scripts. No frameworks, no databases, no lock-
   context files, and deep knowledge with semantic search
 - **11 skills** — Web research, meeting transcripts, CRM, phone system, task management,
   and more — each a standalone Python script with zero setup
-- **4 autonomous workflows** — Agents that triage your inbox, manage tasks, prep your
-  calendar, and organize contacts — learning your preferences over time
+- **5 autonomous workflows** — Agents that triage your inbox, manage tasks, prep your
+  calendar, organize contacts, and monitor security threats — learning your preferences
+  over time
 - **Templates for identity** — Define your AI's personality, your profile, and how it
   should operate
 - **DevOps included** — Hourly health checks, fleet management across machines,
@@ -89,8 +90,9 @@ openclaw-config/
 ├── workflows/          # Autonomous agents with state & learning
 │   ├── email-steward/  # Inbox triage — archive noise, surface what matters
 │   ├── task-steward/   # Classify, create, execute, and QA tasks
-│   ├── calendar-steward/ # Daily briefing with travel & meeting prep
-│   └── contact-steward/  # Detect and organize unknown contacts
+│   ├── calendar-steward/    # Daily briefing with travel & meeting prep
+│   ├── contact-steward/    # Detect and organize unknown contacts
+│   └── security-sentinel/  # Threat intelligence & exposure mapping
 │
 ├── memory/             # Example memory directory structure
 │   ├── people/         # One file per person
@@ -127,12 +129,13 @@ independently.
 Workflows are autonomous agents that run on a schedule. Unlike skills (tools you
 invoke), workflows maintain state, learn your preferences, and manage themselves.
 
-| Workflow             | What it does                                                   | Version |
-| -------------------- | -------------------------------------------------------------- | ------- |
-| **email-steward**    | Triage inbox — archive noise, label, alert on important        | 0.2.0   |
-| **task-steward**     | Classify work, create tasks, spawn sub-agents, QA results      | 0.1.0   |
-| **calendar-steward** | Daily briefing — travel time, meeting prep, conflict detection | 0.1.0   |
-| **contact-steward**  | Detect unknown contacts across platforms, classify & organize  | 0.1.0   |
+| Workflow              | What it does                                                   | Version |
+| --------------------- | -------------------------------------------------------------- | ------- |
+| **email-steward**     | Triage inbox — archive noise, label, alert on important        | 0.2.0   |
+| **task-steward**      | Classify work, create tasks, spawn sub-agents, QA results      | 0.1.0   |
+| **calendar-steward**  | Daily briefing — travel time, meeting prep, conflict detection | 0.1.0   |
+| **contact-steward**   | Detect unknown contacts across platforms, classify & organize  | 0.1.0   |
+| **security-sentinel** | Threat intelligence research & fleet exposure mapping          | 0.1.0   |
 
 Each workflow maintains its own state:
 
@@ -209,6 +212,17 @@ Desired-state specifications that define what a healthy OpenClaw machine looks l
 
 Each section follows the pattern: **desired state** → **verify command** → **fix
 command**. The health check agent uses these specs for drift detection.
+
+### Security Hardening
+
+`devops/machine-security-review.md` is a security-focused agent that runs daily (drift
+detection) and weekly (full audit + red team). It checks firewall config, open ports,
+file permissions, SSH hardening, credential exposure, prompt injection in memory/agent
+files, skill script integrity, and MCP tool poisoning. It can auto-fix safe issues
+(permission tightening) and escalates everything else to the fleet admin.
+
+The companion `workflows/security-sentinel/` researches emerging AI security threats
+weekly and maps them against the fleet's exposure.
 
 ### Notification Routing
 
