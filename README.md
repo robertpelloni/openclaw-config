@@ -132,10 +132,10 @@ invoke), workflows maintain state, learn your preferences, and manage themselves
 
 | Workflow              | What it does                                                   | Version |
 | --------------------- | -------------------------------------------------------------- | ------- |
-| **email-steward**     | Triage inbox — archive noise, label, alert on important        | 0.2.0   |
+| **email-steward**     | Triage inbox — archive noise, label, alert on important        | 0.3.0   |
 | **task-steward**      | Classify work, create tasks, spawn sub-agents, QA results      | 0.1.0   |
 | **calendar-steward**  | Daily briefing — travel time, meeting prep, conflict detection | 0.1.0   |
-| **contact-steward**   | Detect unknown contacts across platforms, classify & organize  | 0.1.0   |
+| **contact-steward**   | Detect unknown contacts across platforms, classify & organize  | 0.2.0   |
 | **security-sentinel** | Threat intelligence research & fleet exposure mapping          | 0.1.0   |
 | **cron-healthcheck**  | Detect broken cron jobs, auto-remediate, escalate failures     | 0.1.0   |
 
