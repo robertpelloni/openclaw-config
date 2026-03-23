@@ -26,6 +26,50 @@ just say "install fail2ban" — explain what brute-force attacks look like and w
 tool stops them. The human should finish the session understanding their security
 posture better than when they started.
 
+## Prerequisites
+
+Several security checks require `sudo` (firewall status, SSH config on some systems).
+The automated cron agent cannot type a password, so passwordless sudo must be configured
+for the specific commands this agent needs.
+
+You have two options:
+
+**Option A: Blanket passwordless sudo.** The simplest setup — the agent can run any
+command as root. This is appropriate if the machine has a single user and you trust the
+OpenClaw agent (which you should, since you're running it). Most OpenClaw machines are
+personal machines where the user already has full sudo access.
+
+```bash
+sudo visudo -f /etc/sudoers.d/openclaw-security
+```
+
+```
+<username> ALL=(ALL) NOPASSWD: ALL
+```
+
+**Option B: Scoped passwordless sudo.** Only grant the specific commands the security
+review needs. More restrictive, but you'll need to update this list if future checks
+require new commands. Better for shared machines or environments where you want to limit
+what automated agents can do as root.
+
+```bash
+sudo visudo -f /etc/sudoers.d/openclaw-security
+```
+
+```
+# macOS (pf packet filter)
+<username> ALL=(ALL) NOPASSWD: /sbin/pfctl -s info
+<username> ALL=(ALL) NOPASSWD: /sbin/pfctl -s rules
+
+# Linux (ufw or iptables)
+<username> ALL=(ALL) NOPASSWD: /usr/sbin/ufw status
+<username> ALL=(ALL) NOPASSWD: /usr/sbin/iptables -L -n
+```
+
+Replace `<username>` with the machine's user. If passwordless sudo isn't configured when
+the agent runs, checks requiring sudo will be skipped and reported as "unable to check —
+sudo not configured."
+
 ## Shared Machine Context
 
 Read `CLAUDE.local.md` first if it exists — it contains machine identity, paths,
@@ -75,16 +119,20 @@ Probes your own defenses. See the Red Team section.
 
 **macOS:**
 
-- Firewall should be enabled:
-  `sudo /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate`
-- Stealth mode enabled: `--getstealthmode`
-- Tailscale and SSH allowed through
+- Check `pf` (packet filter) status: `sudo pfctl -s info` — look for `Status: Enabled`
+- Check active rules: `sudo pfctl -s rules`
+- If sudo fails with "permission denied" or "password required," report that the
+  prerequisites haven't been configured and skip the firewall check
+- Do NOT check the Application Firewall (`socketfilterfw`) — that's the consumer GUI
+  toggle for per-app permissions, not the network-level packet filter
 
 **Linux:**
 
-- `ufw` enabled: `sudo ufw status`
+- `ufw` enabled: `sudo ufw status` (ufw is a frontend for iptables/nftables)
+- If `ufw` is not installed, check `iptables`: `sudo iptables -L -n`
 - Only expected ports open (SSH, Tailscale)
 - Default policy: deny incoming, allow outgoing
+- If sudo fails, same as macOS — report and skip
 
 **Tailscale as network boundary:** Many OpenClaw deployments use Tailscale as their
 primary network security layer. If the machine is only reachable via Tailscale (no
