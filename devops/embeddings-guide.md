@@ -158,7 +158,7 @@ brew install ollama
 # Pull the embedding model
 ollama pull bge-m3
 
-# Enable auto-start on boot
+# Enable auto-start on login
 brew services start ollama
 
 # Verify
