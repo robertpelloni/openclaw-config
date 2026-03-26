@@ -76,7 +76,7 @@ Diagnose and remediate each broken job following this playbook:
    - Config error: missing or invalid configuration
 
 2. REMEDIATE — Based on diagnosis:
-   - Timeout → Bump timeout to 2x current value. Update via cron tool.
+   - Timeout → Bump timeout to 2x current value (cap at 3600s). Update via cron tool.
    - Config error → Fix the configuration if possible.
    - API failure → Note it for the report, no remediation possible.
    - Crash → Note it for escalation, don't guess at fixes.
