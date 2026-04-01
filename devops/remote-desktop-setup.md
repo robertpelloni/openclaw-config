@@ -276,14 +276,6 @@ brew install --cask vnc-viewer  # RealVNC
 
 ---
 
-## Fleet Reference
-
-| Server  | Mode      | SG Port 5901                |
-| ------- | --------- | --------------------------- |
-| hex     | always-on | closed (Tailscale-only)     |
-| mycroft | always-on | open (sg-0024bf3d80fd63ebb) |
-| dristhi | always-on | open (sg-0024bf3d80fd63ebb) |
-
 Connect via Tailscale IP (check `tailscale status`) or hostname.
 
 ---
