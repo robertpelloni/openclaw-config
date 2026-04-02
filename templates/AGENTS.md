@@ -500,7 +500,7 @@ Addresses matching `*@lists.*`, `*-noreply@*`, and `*-bounces@*` are mailing lis
 infrastructure. Skip them during contact ingestion. They pollute the contact graph and
 trigger false follow-up suggestions.
 
-<!-- source: contact-steward | type: correction -->
+<!-- source: contact-steward | type: correction | date: 2026-03-28 -->
 ```
 
 **Most sessions produce zero corrections. That's healthy.** Don't force it. Don't
