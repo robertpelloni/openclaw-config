@@ -184,9 +184,6 @@ is how corrections compound into improvements over time.
    comment — those entries must survive until the pattern is promoted or expired
 7. **Prune stale pattern candidates** — archive entries in `patterns.md` whose HTML
    comment has `status: candidate` and is older than 60 days (move to archive)
-8. **Flag stale promoted rules** — check `patterns.md` for entries whose HTML comment
-   has `status: promoted` older than 90 days. Note them in today's daily file for review
-   but don't auto-delete
 
 Log the results to today's daily file:
 
@@ -198,7 +195,6 @@ Log the results to today's daily file:
 - Existing patterns updated: N
 - Stale corrections archived: N
 - Stale pattern candidates expired: N
-- Promoted rules flagged for review: N
 ```
 
 If `memory/learning/corrections.md` doesn't exist or is empty, skip this step silently.

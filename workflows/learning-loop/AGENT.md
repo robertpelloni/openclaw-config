@@ -69,7 +69,7 @@ Addresses matching `*@lists.*`, `*-noreply@*`, and `*-bounces@*` are mailing lis
 infrastructure. Skip them during contact ingestion. They pollute the contact graph and
 trigger false follow-up suggestions.
 
-<!-- source: contact-steward | type: correction -->
+<!-- source: contact-steward | type: correction | date: 2026-03-28 -->
 ```
 
 **Bad** — reads like an incident report:
@@ -160,7 +160,7 @@ relationship graphs. Applies to all email-sourced contact discovery.
 
 Destination: contact-steward `agent_notes.md` and email-steward `agent_notes.md`
 
-<!-- status: candidate | occurrences: 3 | sources: contact-steward, main-session -->
+<!-- status: candidate | occurrences: 3 | sources: contact-steward, main-session | confidence: high | date: 2026-03-28 -->
 ```
 
 **Bad** — a metadata dump with the rule buried:
@@ -196,14 +196,14 @@ Before creating a new pattern, check if it already exists in:
 
 ## Phase 3: Validation and Promotion
 
-**When:** Weekly cron, or when unvalidated candidates in `patterns.md` reach the
-`validation_trigger_count` threshold in `rules.md` (default: 3). **Where:** Reads
-`patterns.md`, promotes to permanent locations. **Who:** Learning loop workflow (this
-file), run on an expensive model.
+**When:** Weekly cron, or when high- or medium-confidence unvalidated candidates in
+`patterns.md` reach the `validation_trigger_count` threshold in `rules.md` (default: 3).
+**Where:** Reads `patterns.md`, promotes to permanent locations. **Who:** Learning loop
+workflow (this file), run on an expensive model.
 
 ### Validation Checklist
 
-For each candidate pattern with status `candidate`:
+For each candidate pattern with status `candidate` and confidence `high` or `medium`:
 
 1. **Evidence quality** — Are the evidence entries real corrections from different
    sessions? (Not the same event logged twice)
@@ -239,12 +239,10 @@ Based on scope and the `destination` field:
 
 ### After Promotion
 
-Update the pattern entry in `patterns.md`:
+Update the HTML comment on the pattern entry in `patterns.md` to reflect its new status:
 
 ```markdown
-- **status:** promoted
-- **promoted_to:** [file path]
-- **promoted_on:** YYYY-MM-DD
+<!-- status: promoted | promoted_to: workflows/email-steward/agent_notes.md | promoted_on: 2026-03-28 | occurrences: 3 | sources: contact-steward, main-session | confidence: high | date: 2026-03-15 -->
 ```
 
 Don't delete promoted entries from patterns.md — they're the audit trail.
