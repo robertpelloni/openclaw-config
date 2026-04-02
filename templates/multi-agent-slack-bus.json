@@ -16,7 +16,7 @@
     "list": [
       {
         "id": "main",
-        "displayName": "Agent Name (e.g., Cora, Shelly, Hex)",
+        "displayName": "Agent Name (e.g., alpha, bravo, charlie)",
         "groupChat": {
           "mentionPatterns": ["\\b{name}\\b"]
         }
@@ -31,7 +31,7 @@
         "signingSecretEnvVar": "SLACK_SIGNING_SECRET"
       },
       "channels": {
-        "C0AMLA1SG67": {
+        "<SLACK_CHANNEL_ID>": {
           "_comment": "Replace with your actual Slack channel ID",
           "requireMention": true,
           "allowBots": true,

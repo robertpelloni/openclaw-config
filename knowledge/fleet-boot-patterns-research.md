@@ -140,7 +140,7 @@ consistent across fleet members.
 **Mention patterns for humans → agents:**
 
 - Set `agents.list[].groupChat.mentionPatterns: ["\\b<name>\\b"]`
-- Allows natural speech: "Hey Cora, what do you think?" or explicit @Cora
+- Allows natural speech: "Hey alpha, what do you think?" or explicit @alpha
 
 **Mention patterns for agents → agents:**
 
@@ -218,17 +218,17 @@ failure, shared resource limits
 - Loop detection + ping-pong guards prevent infinite loops
 - Session persistence is per-gateway; each agent resets independently
 
-**Config example (Gateway 1 - Cora):**
+**Config example (Gateway 1 - alpha):**
 
 ```json
 {
   "agents": {
     "list": [
       {
-        "id": "cora",
-        "name": "Cora",
+        "id": "alpha",
+        "name": "alpha",
         "groupChat": {
-          "mentionPatterns": ["\\bcora\\b", "\\bCora\\b"]
+          "mentionPatterns": ["\\balpha\\b"]
         }
       }
     ]
@@ -236,10 +236,10 @@ failure, shared resource limits
   "channels": {
     "slack": {
       "channels": {
-        "C0AMLA1SG67": {
+        "<SLACK_CHANNEL_ID>": {
           "requireMention": true,
           "allowBots": true,
-          "agents": ["cora"]
+          "agents": ["alpha"]
         }
       }
     }
@@ -355,31 +355,31 @@ file management.
 
 ## 8. Recommended Fleet Config (Summary)
 
-For a 3-agent fleet (Cora, Hex, Shelly) across multiple gateways:
+For a 3-agent fleet (alpha, bravo, charlie) across multiple gateways:
 
 ```json
 {
   "agents": {
     "list": [
       {
-        "id": "cora",
-        "name": "Cora",
+        "id": "alpha",
+        "name": "alpha",
         "groupChat": {
-          "mentionPatterns": ["\\bcora\\b", "\\bCora\\b"]
+          "mentionPatterns": ["\\balpha\\b"]
         }
       },
       {
-        "id": "hex",
-        "name": "Hex",
+        "id": "charlie",
+        "name": "charlie",
         "groupChat": {
-          "mentionPatterns": ["\\bhex\\b", "\\bHex\\b"]
+          "mentionPatterns": ["\\bcharlie\\b"]
         }
       },
       {
-        "id": "shelly",
-        "name": "Shelly",
+        "id": "bravo",
+        "name": "bravo",
         "groupChat": {
-          "mentionPatterns": ["\\bshelly\\b", "\\bShelly\\b"]
+          "mentionPatterns": ["\\bbravo\\b"]
         }
       }
     ]
@@ -387,10 +387,10 @@ For a 3-agent fleet (Cora, Hex, Shelly) across multiple gateways:
   "channels": {
     "slack": {
       "channels": {
-        "C0AMLA1SG67": {
+        "<SLACK_CHANNEL_ID>": {
           "requireMention": true,
           "allowBots": true,
-          "agents": ["cora", "hex", "shelly"]
+          "agents": ["alpha", "charlie", "bravo"]
         }
       }
     }

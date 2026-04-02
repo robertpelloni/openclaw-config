@@ -1,7 +1,7 @@
 # Multi-Agent Communication Patterns
 
-**Date:** 2026-03-21 **Status:** Tested & Working **Agents:** Cora, Shelly, Hex (across
-3 separate OpenClaw gateways)
+**Date:** 2026-03-21 **Status:** Tested & Working **Agents:** alpha, bravo, charlie
+(across 3 separate OpenClaw gateways)
 
 ## Quick Summary
 
@@ -22,7 +22,7 @@ can use native `sessions_send` for invisible backend coordination.
 ```
 ┌──────────────────┐       ┌──────────────────┐       ┌──────────────────┐
 │ Gateway A        │       │ Gateway B        │       │ Gateway C        │
-│ (Cora/main)      │       │ (Shelly/main)    │       │ (Hex/main)       │
+│ (alpha/main)      │       │ (bravo/main)    │       │ (charlie/main)       │
 │                  │       │                  │       │                  │
 │ ~/.openclaw/...  │       │ ~/.openclaw/...  │       │ ~/.openclaw/...  │
 │ Sessions: local  │       │ Sessions: local  │       │ Sessions: local  │
@@ -32,7 +32,7 @@ can use native `sessions_send` for invisible backend coordination.
                                    │
                     ┌──────────────────────────┐
                     │  Slack Channel Bus       │
-                    │  C0AMLA1SG67            │
+                    │  <SLACK_CHANNEL_ID>            │
                     │                          │
                     │ • @-mention routing      │
                     │ • allowBots: true        │
@@ -62,7 +62,7 @@ Add this to **every OpenClaw gateway's `~/.openclaw/openclaw.json`**:
   "channels": {
     "slack": {
       "channels": {
-        "C0AMLA1SG67": {
+        "<SLACK_CHANNEL_ID>": {
           "requireMention": true,
           "allowBots": true
         }
@@ -94,7 +94,7 @@ Add this to **every OpenClaw gateway's `~/.openclaw/openclaw.json`**:
 
 | Key                     | Value        | Purpose                                                                   |
 | ----------------------- | ------------ | ------------------------------------------------------------------------- |
-| `mentionPatterns`       | `\b{name}\b` | Case-insensitive regex. Humans say "cora help"; agents say "@shelly ...". |
+| `mentionPatterns`       | `\b{name}\b` | Case-insensitive regex. Humans say "alpha help"; agents say "@bravo ...". |
 | `requireMention`        | `true`       | Require explicit @-mention in Slack (prevents accidental triggers).       |
 | `allowBots`             | `true`       | Allow bot-to-bot @-mentions (REQUIRED for agent coordination).            |
 | `agentToAgent.enabled`  | `true`       | Unlock cross-agent tool coordination.                                     |
@@ -109,34 +109,34 @@ Add this to **every OpenClaw gateway's `~/.openclaw/openclaw.json`**:
 ### Human → Agent (Natural Language)
 
 ```
-Nick (in Slack): "cora what's happening?"
+User (in Slack): "alpha what's happening?"
 │
 ├─ Parsed as mentionPattern match
-├─ Routes to Cora's main session
-├─ Cora processes, replies
+├─ Routes to alpha's main session
+├─ Agent processes, replies
 └─ Reply appears in Slack
 ```
 
 ### Agent → Agent (@-mention Required)
 
 ```
-Cora (thinking): "I need Shelly's help"
+alpha (thinking): "I need bravo's help"
 │
-├─ Sends: "@shelly can you research X?"
-├─ Slack routes as new inbound message to Shelly
-├─ Shelly's mention pattern matches "shelly"
-├─ Routes to Shelly's main session
-├─ Shelly processes, replies
-└─ Cora sees response in channel history
+├─ Sends: "@bravo can you research X?"
+├─ Slack routes as new inbound message to bravo
+├─ bravo's mention pattern matches "bravo"
+├─ Routes to bravo's main session
+├─ bravo processes, replies
+└─ alpha sees response in channel history
 ```
 
 ### Loop Detection in Action
 
 ```
-Cora: "Hey @shelly, what's the status?"
-Shelly: "@hex do you know Cora's status?"
-Hex: "@cora can you help Shelly?"
-Cora: "@shelly @hex I think we're in a loop..."
+alpha: "Hey @bravo, what's the status?"
+bravo: "@charlie do you know alpha's status?"
+charlie: "@alpha can you help bravo?"
+alpha: "@bravo @charlie I think we're in a loop..."
 │
 └─ Loop detector recognizes ping-pong pattern
    After 5 exchanges, further messages in this
@@ -152,12 +152,12 @@ Cora: "@shelly @hex I think we're in a loop..."
 **When:** One agent needs info from another to continue.
 
 ```python
-# In Cora's brain:
-send_slack_message("@shelly what's the status of task X?")
+# In alpha's brain:
+send_slack_message("@bravo what's the status of task X?")
 time.sleep(1)  # Brief wait for Slack delivery
-results = sessions_history(sessionKey="agent:shelly:main")
-# Extract Shelly's reply from history
-synthesize_results(my_task, shelly_input)
+results = sessions_history(sessionKey="agent:bravo:main")
+# Extract bravo's reply from history
+synthesize_results(my_task, bravo_input)
 ```
 
 **Pros:** Simple, synchronous-looking **Cons:** Depends on response timing
@@ -167,13 +167,13 @@ synthesize_results(my_task, shelly_input)
 **When:** One agent announces a state change; others may react.
 
 ```
-Cora: "@shelly @hex NEW TASK AVAILABLE: [details]"
+alpha: "@bravo @charlie NEW TASK AVAILABLE: [details]"
 ```
 
 **Flow:**
 
-- Shelly sees her mention, activates
-- Hex sees his mention, activates
+- bravo sees her mention, activates
+- charlie sees his mention, activates
 - Both can react independently (thread replies, acknowledgments, etc.)
 
 **Pros:** One message to many agents **Cons:** No guarantee of receipt
@@ -183,7 +183,7 @@ Cora: "@shelly @hex NEW TASK AVAILABLE: [details]"
 **When:** Coordinator has tasks; workers claim and execute.
 
 ```
-Cora: "@worker1 @worker2 here are 10 tasks:
+alpha: "@worker1 @worker2 here are 10 tasks:
   1. Task A
   2. Task B
   [...]"
@@ -191,7 +191,7 @@ Cora: "@worker1 @worker2 here are 10 tasks:
 Worker1: (reads history, claims Task A, posts: "Claiming Task A")
 Worker2: (reads history, claims Task B, posts: "Claiming Task B")
 
-Cora: (reads history, collects results, synthesizes)
+alpha: (reads history, collects results, synthesizes)
 ```
 
 **Pros:** Parallel work **Cons:** Requires discipline (locking, idempotency)
@@ -218,7 +218,7 @@ openclaw gateway logs | grep mentionPattern
 **Check 3: Is `allowBots: true` set?**
 
 ```bash
-grep -A3 "C0AMLA1SG67" ~/.openclaw/openclaw.json | grep allowBots
+grep -A3 "<SLACK_CHANNEL_ID>" ~/.openclaw/openclaw.json | grep allowBots
 ```
 
 **Fix:** Restart gateway if config changed:
@@ -274,7 +274,7 @@ openclaw gateway restart
 
 1. **Create Slack channel** (or use existing)
    - Name: `#multi-agent` (or whatever you prefer)
-   - Note the channel ID (e.g., `C0AMLA1SG67`)
+   - Note the channel ID (e.g., `<SLACK_CHANNEL_ID>`)
 
 2. **Add bot to channel**
    - In Slack: `/invite @openclaw-bot`
@@ -292,8 +292,8 @@ openclaw gateway restart
 
 5. **Test from Slack**
    ```
-   @cora hello
-   @shelly what's up
+   @alpha hello
+   @bravo what's up
    ```
 
 ---
@@ -307,7 +307,7 @@ If you consolidate all agents to one OpenClaw instance:
    ```json
    {
      "agents": {
-       "list": [{ "id": "cora" }, { "id": "shelly" }, { "id": "hex" }]
+       "list": [{ "id": "alpha" }, { "id": "bravo" }, { "id": "charlie" }]
      }
    }
    ```
@@ -316,8 +316,8 @@ If you consolidate all agents to one OpenClaw instance:
 
    ```python
    sessions_send(
-     sessionKey="agent:shelly:main",
-     message="@shelly help with X?"
+     sessionKey="agent:bravo:main",
+     message="@bravo help with X?"
    )
    ```
 
@@ -333,8 +333,8 @@ If you consolidate all agents to one OpenClaw instance:
 - ✅ **Use @-mentions in Slack** — Be explicit about who you're addressing
 - ✅ **Enable loop detection** — Prevent runaway conversations
 - ✅ **Set `requireMention: true`** — Avoid accidental triggers
-- ✅ **Use `mentionPatterns` for natural language** — Humans don't type `@cora`, just
-  say "cora"
+- ✅ **Use `mentionPatterns` for natural language** — Humans don't type `@alpha`, just
+  say "alpha"
 - ✅ **Test with small requests first** — Verify routing works before complex
   coordination
 - ✅ **Archive channel history** — Slack stores full message context (useful for
@@ -371,10 +371,10 @@ If you consolidate all agents to one OpenClaw instance:
 - **Configuration is simple:** Enable `allowBots`, set `requireMention`, configure
   `mentionPatterns`
 - **Loop detection prevents runaway conversations** (up to `maxPingPongTurns`)
-- **This is production-tested** with Cora, Shelly, and Hex
+- **This is production-tested** with alpha, bravo, and charlie
 - **Future:** Consolidating to one gateway enables native `sessions_send` (silent
   backend coordination)
 
 ---
 
-_Maintained by Cora — last updated 2026-03-21_
+_Maintained by alpha — last updated 2026-03-21_

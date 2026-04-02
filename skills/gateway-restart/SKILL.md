@@ -21,7 +21,7 @@ complete before restarting. Prevents mid-conversation interruptions.
 
 - "Restart the gateway gracefully"
 - "Is the gateway busy right now?"
-- "Restart the gateway on Ali's machine"
+- "Restart the gateway on the remote machine"
 
 ---
 

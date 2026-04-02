@@ -3,20 +3,20 @@
 OpenClaw fleet notifications use a **two-lane model**: admin lane for system health,
 user lane for cron outputs. Never mix them.
 
-## Lane 1: Admin (System Health → Nick)
+## Lane 1: Admin (System Health → Fleet Admin)
 
 **What:** Health check results, cron job failures, infrastructure issues, gateway
 problems, model errors, anything BROKEN.
 
-**Recipient:** Nick (fleet admin) — Telegram `469214633`
+**Recipient:** The fleet admin — via Telegram (see `health-check-admin` on each machine)
 
 **Mechanism:** `~/.openclaw/health-check-admin` file on each machine.
 
 **Standard format (exactly 2 lines):**
 
 ```
-Nick
-openclaw message send --channel telegram --target "469214633" --message "{MESSAGE}"
+<ADMIN_NAME>
+openclaw message send --channel telegram --target "<ADMIN_TELEGRAM_ID>" --message "{MESSAGE}"
 ```
 
 **Jobs that use this lane:**
@@ -29,8 +29,8 @@ openclaw message send --channel telegram --target "469214633" --message "{MESSAG
 - Health check cron jobs MUST have `delivery.mode: "none"` — the agent handles its own
   notifications via health-check-admin. Using announce/deliver modes causes duplicate or
   broken delivery.
-- Never hardcode Nick's contact in cron job prompts on fleet machines. Always reference
-  the health-check-admin file so the target can be updated in one place.
+- Never hardcode the admin's contact in cron job prompts on fleet machines. Always
+  reference the health-check-admin file so the target can be updated in one place.
 - Admin notifications include the hostname and agent identity (from IDENTITY.md).
 
 ## Lane 2: User (Cron Outputs → Host Person)
@@ -50,20 +50,20 @@ commitment extracts — anything produced FOR the user.
 
 **User Telegram IDs:**
 
-| Machine             | User         | Telegram ID | Bot                |
-| ------------------- | ------------ | ----------- | ------------------ |
-| Master              | Nick         | 469214633   | Cora's bot         |
-| Gil's Mac Mini      | Gil Penchina | 6234387199  | @Gils_bob_bot      |
-| Thomas's Mac Mini   | Thomas Owen  | 8546096241  | @thomas_roxy_bot   |
-| Ali's Mac Mini      | Ali Katz     | 1168760671  | ShantiMa's bot     |
-| Julianna's Mac Mini | Julianna     | TBD         | @Juliannas_Ace_bot |
+Store the per-machine user Telegram IDs in the fleet files
+(`~/openclaw-fleet/<machine>.md`), not here. This is a public repo. Example table format
+for fleet files:
+
+| Machine   | User        | Telegram ID   | Bot          |
+| --------- | ----------- | ------------- | ------------ |
+| machine-1 | <USER_NAME> | <TELEGRAM_ID> | @example_bot |
 
 **Rules:**
 
 - User-facing jobs target the HOST user, not the fleet admin.
-- On the master (Nick's machine), admin and user are the same person — no conflict.
-- On fleet machines, cron prompts that mention "Nick" or hardcode `469214633` for
-  user-facing output are WRONG unless the job is system health.
+- On the master (admin's machine), admin and user are the same person — no conflict.
+- On fleet machines, cron prompts that hardcode the admin's contact for user-facing
+  output are WRONG unless the job is system health.
 
 ## Job Classification Guide
 
@@ -78,8 +78,8 @@ commitment extracts — anything produced FOR the user.
 1. **Create health-check-admin** (admin lane):
 
    ```
-   Nick
-   openclaw message send --channel telegram --target "469214633" --message "{MESSAGE}"
+   <ADMIN_NAME>
+   openclaw message send --channel telegram --target "<ADMIN_TELEGRAM_ID>" --message "{MESSAGE}"
    ```
 
 2. **Find the user's Telegram ID**:
@@ -99,7 +99,7 @@ commitment extracts — anything produced FOR the user.
 ## Vestigial Delivery Configs
 
 Some cron jobs have `delivery.mode: "none"` but still have `channel` and `to` fields
-populated (e.g., `{"mode": "none", "channel": "whatsapp", "to": "+19253537603"}`). The
+populated (e.g., `{"mode": "none", "channel": "whatsapp", "to": "+1XXXXXXXXXX"}`). The
 extra fields are ignored when mode is `none`. They're harmless but misleading — clean
 them up when you touch the job.
 

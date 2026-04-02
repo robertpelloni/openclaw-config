@@ -28,10 +28,13 @@ integration skills.
   skill/workflow tables when adding, removing, or versioning skills and workflows
 - Tests skip gracefully when API keys unavailable
 - Keep secrets out of the repo — API keys and `.env` files stay local
-- **This is a public repo** — never include machine-specific details: hostnames,
-  instance IDs, IP addresses, security group IDs, usernames, or any fleet-specific
-  config. That belongs in `~/openclaw-fleet/` (private, gitignored) or `CLAUDE.local.md`
-  (gitignored). Generic setup guides only — no "Server X uses SG sg-xxxx" tables.
+- **This is a public repo — zero PII, zero fleet specifics.** This repo is a shareable
+  template that anyone can clone. Never include: real names, Telegram/chat IDs, phone
+  numbers, bot usernames, API keys, IP addresses, hostnames, instance IDs, security
+  group IDs, or any other personally identifiable information. Use generic placeholders
+  (`<ADMIN_NAME>`, `<TELEGRAM_ID>`, `<BOT_TOKEN>`, `machine-1`) in examples. Fleet-
+  specific details belong in `~/openclaw-fleet/` (private) or `CLAUDE.local.md`
+  (gitignored). When in doubt, use a placeholder.
 - Store persistent state in markdown, not JSON — agents read and update markdown
   naturally without parsing. JSON is fine for API responses and tool output (`--json`
   flags), but state files (health reports, security posture, drift baselines) should be

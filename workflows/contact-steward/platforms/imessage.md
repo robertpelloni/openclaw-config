@@ -14,7 +14,7 @@ Output format (not JSON, plain text):
 
 ```
 [chat_id]  (identifier) last=<timestamp>
-[4929]  (+16463031177) last=2026-03-04T19:05:35.284Z
+[4929]  (+15551234567) last=2026-03-04T19:05:35.284Z
 [4753] United Airlines (united_airlines@rbm.goog) last=2026-03-03T19:24:15.668Z
 ```
 
@@ -33,8 +33,8 @@ imsg history --chat-id <chat_id> --limit 20
 Output format:
 
 ```
-2026-03-04T19:05:35.284Z [sent] +16463031177: Message text here
-2026-03-04T03:19:52.584Z [recv] +16463031177: Their reply
+2026-03-04T19:05:35.284Z [sent] +15551234567: Message text here
+2026-03-04T03:19:52.584Z [recv] +15551234567: Their reply
 ```
 
 - `[sent]` = your human sent it

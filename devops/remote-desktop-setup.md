@@ -5,7 +5,8 @@ desktop (Xfce4) with Chromium browser, accessible via VNC client from macOS.
 
 Two modes:
 
-- **Always-on** — for servers that need persistent screen sharing (e.g. hex)
+- **Always-on** — for servers that need persistent screen sharing (e.g. a headless EC2
+  instance)
 - **On-demand** — start/stop as needed for debugging or browser tasks
 
 ---

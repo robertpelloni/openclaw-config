@@ -253,22 +253,33 @@ Restic backs up all of `~/.openclaw/` to a local repository.
 ### Repository
 
 - Location: `~/openclaw-backups`
-- Password file: `~/.openclaw/restic-password` (permissions `600`)
-- Password: `openclaw-local-backup`
+- Password: **none** (`--insecure-no-password`) — repos are unencrypted, no password to
+  lose
+- Password file: `~/.openclaw/restic-password` kept empty (for legacy compat only)
 - Excludes: `browser/`, `skill-venv/`, `logs/` (all regenerable)
 
 **Verify repo exists:**
 
 ```bash
-RESTIC_PASSWORD_FILE=~/.openclaw/restic-password restic -r ~/openclaw-backups snapshots | tail -3
+restic -r ~/openclaw-backups --insecure-no-password snapshots | tail -3
 ```
 
 **Fix (initialize new repo):**
 
 ```bash
-echo "openclaw-local-backup" > ~/.openclaw/restic-password
-chmod 600 ~/.openclaw/restic-password
-RESTIC_PASSWORD_FILE=~/.openclaw/restic-password restic init --repo ~/openclaw-backups
+printf "" > ~/.openclaw/restic-password
+restic -r ~/openclaw-backups --insecure-no-password init
+```
+
+**Restic version requirement:** `--insecure-no-password` requires restic 0.16.0+ for
+reading, 0.17.0+ for `key passwd --new-insecure-no-password`. Install latest from GitHub
+releases:
+
+```bash
+ARCH=$(uname -m | sed "s/x86_64/amd64/;s/aarch64/arm64/")
+VER=$(curl -fsSL https://api.github.com/repos/restic/restic/releases/latest | grep -o '"tag_name": "v[^"]*"' | cut -d'"' -f4 | tr -d v)
+curl -fsSL "https://github.com/restic/restic/releases/download/v${VER}/restic_${VER}_linux_${ARCH}.bz2" \
+  -o /tmp/restic.bz2 && bunzip2 /tmp/restic.bz2 && chmod +x /tmp/restic && sudo mv /tmp/restic /usr/bin/restic
 ```
 
 ### Automated Schedule (systemd timers)
@@ -335,8 +346,8 @@ Create `~/.openclaw/health-check-admin` with two lines — admin name and Telegr
 notification command:
 
 ```
-Nick
-openclaw message send --channel telegram --target "<NICK_TELEGRAM_ID>" --message "{MESSAGE}"
+<ADMIN_NAME>
+openclaw message send --channel telegram --target "<ADMIN_TELEGRAM_ID>" --message "{MESSAGE}"
 ```
 
 **Verify:** `cat ~/.openclaw/health-check-admin` — should have 2 non-placeholder lines.

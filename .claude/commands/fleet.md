@@ -35,8 +35,8 @@ doesn't need notifications.
 
 **When sending notifications to admin:** Send from the agent's identity (from
 IDENTITY.md on that machine), NOT from the user's personal account. The admin should see
-messages from "Bob Steel" or "Cora", not from Gil or Julianna. Use the agent identity as
-the sender when crafting messages.
+messages from the agent identity, not the local OS user. Use the agent identity as the
+sender when crafting messages.
 
 Escalate to the fleet owner when things break that were working. Don't escalate routine
 success or expected states. </behavior>

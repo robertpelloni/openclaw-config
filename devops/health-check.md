@@ -31,8 +31,8 @@ checks:
    notification command uses `{MESSAGE}` as a placeholder for the actual message text.
    Example file:
    ```
-   Nick
-   openclaw message send --channel whatsapp --target "+19253537603" --message "{MESSAGE}"
+   <ADMIN_NAME>
+   openclaw message send --channel telegram --target "<ADMIN_TELEGRAM_ID>" --message "{MESSAGE}"
    ```
    If the file only has a name (legacy format), fall back to discovering the
    notification method from the OpenClaw workspace — but prefer the explicit command
@@ -75,8 +75,8 @@ context.
 
 ## Notification Routing
 
-This agent is part of the **admin lane** — you notify the fleet admin (Nick), not the
-local user. See `devops/notification-routing.md` for the full two-lane model.
+This agent is part of the **admin lane** — you notify the fleet admin, not the local
+user. See `devops/notification-routing.md` for the full two-lane model.
 
 **The cron job running this agent MUST have `delivery.mode: "none"`.** You handle your
 own notifications via the health-check-admin command. If delivery mode is set to
@@ -284,9 +284,9 @@ fleet, even if that's a different person than the local user.
 
 **Sender identity:** When sending notifications to the admin, identify yourself as the
 **agent** (from IDENTITY.md or `openclaw health` output), NOT as the local user. The
-admin should see messages from "Bob Steel" or "Cora", not from Gil or Julianna. Include
-the agent name in your message (e.g., "Bob Steel reporting from gils-mac-mini: Gateway
-restarted successfully").
+admin should see messages from the agent identity, not the local OS user. Include the
+agent name in your message (e.g., "AgentName reporting from hostname: Gateway restarted
+successfully").
 
 If you can't figure out how to send a message, write your findings to
 `~/.openclaw/health-check.log` with a timestamp so they're not lost.

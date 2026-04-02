@@ -7,7 +7,7 @@ Status: brainstormed, not started Date: Feb 4, 2026
 OpenClaw hits a dead end when a task requires a phone call — e.g., cancelling a
 restaurant reservation that can't be done online. Vapi (vapi.ai) provides an API for
 AI-powered outbound phone calls. This skill lets OpenClaw call businesses to complete
-tasks on Nick's behalf.
+tasks on the user's behalf.
 
 ## Design
 
@@ -37,7 +37,7 @@ tasks on Nick's behalf.
 
 - `VAPI_API_KEY` — from dashboard.vapi.ai
 - `VAPI_PHONE_NUMBER_ID` — provisioned phone number ID
-- `VAPI_CALLER_NAME` — name to give when asked (e.g., "Nick Sullivan")
+- `VAPI_CALLER_NAME` — name to give when asked (e.g., "Jane Doe")
 - `VAPI_CALLBACK_NUMBER` — number to leave if asked for callback
 
 **Output (blocking mode):**
@@ -46,7 +46,7 @@ tasks on Nick's behalf.
 ## Call Complete
 
 **Status:** Succeeded / Failed **Duration:** 2m 15s **Outcome:** Reservation cancelled
-for Nick Sullivan, party of 2, tonight at 7:30pm
+for Jane Doe, party of 2, tonight at 7:30pm
 
 ### Transcript
 

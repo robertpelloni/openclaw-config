@@ -33,7 +33,7 @@ quality delivery.
 
 | Tag                | Meaning                          |
 | ------------------ | -------------------------------- |
-| `cora-working`     | AI actively working on this task |
+| `ai-working`       | AI actively working on this task |
 | `needs-research`   | Task requires investigation      |
 | `blocked`          | Waiting on external input        |
 | `quality-verified` | Passed QA review                 |
@@ -73,7 +73,7 @@ When classifying as a Task:
 
 1. **Create in Asana** with clear name and description
 2. **Add to appropriate section** (usually EARLY NEXT unless urgent → NOW/TODAY)
-3. **Tag with `cora-working`** if starting immediately
+3. **Tag with `ai-working`** if starting immediately
 4. **Acknowledge** to human: "Got it. I've added '[task]' to your board and I'm starting
    on it."
 
@@ -94,7 +94,7 @@ When working a task:
    - "Hit a blocker: need Y to proceed"
    - "Completed draft, moving to review..."
 3. **If blocked**, add `blocked` tag and move to WAITING section
-4. **When complete**, remove `cora-working` tag and move to READY FOR REVIEW
+4. **When complete**, remove `ai-working` tag and move to READY FOR REVIEW
 
 ### 4. Quality Verification
 
@@ -128,14 +128,14 @@ When delivering completed work:
 Add to HEARTBEAT.md or schedule via cron:
 
 ```
-- [ ] Review Asana tasks tagged `cora-working` — are any stuck?
+- [ ] Review Asana tasks tagged `ai-working` — are any stuck?
 - [ ] Check WAITING section — can any blockers be resolved?
 - [ ] Look for tasks the user assigned to themselves — offer to help research
 ```
 
 ### What to Do During Review:
 
-**Stuck Tasks (`cora-working` for >2 hours):**
+**Stuck Tasks (`ai-working` for >2 hours):**
 
 - Check last comment for status
 - Try to unblock (more research, break down further, ask clarifying question)

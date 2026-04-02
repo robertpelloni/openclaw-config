@@ -1,7 +1,7 @@
 # Fleet Boot Patterns for Multi-Agent Coordination
 
-**Date:** 2026-03-21 **Source:** Cora's research from active multi-gateway setup (Cora,
-Shelly, Hex) **Status:** Production-ready patterns documented
+**Date:** 2026-03-21 **Source:** alpha's research from active multi-gateway setup
+(alpha, bravo, charlie) **Status:** Production-ready patterns documented
 
 ---
 
@@ -61,9 +61,9 @@ teams own separate gateways.
 **Setup (per gateway):**
 
 ```bash
-export OPENCLAW_PROFILE=cora
-export OPENCLAW_STATE_DIR=~/.openclaw-cora
-export OPENCLAW_CONFIG_PATH=~/.openclaw/openclaw-cora.json
+export OPENCLAW_PROFILE=alpha
+export OPENCLAW_STATE_DIR=~/.openclaw-alpha
+export OPENCLAW_CONFIG_PATH=~/.openclaw/openclaw-alpha.json
 openclaw onboard
 openclaw gateway install  # systemd/launchd service
 ```
@@ -71,9 +71,9 @@ openclaw gateway install  # systemd/launchd service
 **Session storage (distributed):**
 
 ```
-Gateway 1 (Cora):   ~/.openclaw-cora/agents/cora/sessions/
-Gateway 2 (Shelly): ~/.openclaw-shelly/agents/shelly/sessions/
-Gateway 3 (Hex):    ~/.openclaw-hex/agents/hex/sessions/
+Gateway 1 (alpha):   ~/.openclaw-alpha/agents/alpha/sessions/
+Gateway 2 (bravo): ~/.openclaw-bravo/agents/bravo/sessions/
+Gateway 3 (charlie):    ~/.openclaw-charlie/agents/charlie/sessions/
 ```
 
 **Inter-agent communication:** Via Slack @-mentions (the bus), 1-3s latency per hop.
@@ -100,42 +100,42 @@ Gateway 3 (Hex):    ~/.openclaw-hex/agents/hex/sessions/
 1. **Three machines** (or three ports on same machine)
 2. **Slack workspace** with shared channel `#multi-agent-comms` (or any channel ID)
 3. **Three Slack bot tokens** (one per agent, created via Slack app UI)
-4. **Nick account** on all three machines (or one machine with three isolated
+4. **User account** on all three machines (or one machine with three isolated
    directories)
 
 ### Step 1: Create Workspace Directories
 
 ```bash
-# Host 1 (Cora)
-mkdir -p ~/.openclaw-cora/agents/cora
-mkdir -p ~/.openclaw/workspace-cora
+# Host 1 (alpha)
+mkdir -p ~/.openclaw-alpha/agents/alpha
+mkdir -p ~/.openclaw/workspace-alpha
 
-# Host 2 (Shelly)
-mkdir -p ~/.openclaw-shelly/agents/shelly
-mkdir -p ~/.openclaw/workspace-shelly
+# Host 2 (bravo)
+mkdir -p ~/.openclaw-bravo/agents/bravo
+mkdir -p ~/.openclaw/workspace-bravo
 
-# Host 3 (Hex)
-mkdir -p ~/.openclaw-hex/agents/hex
-mkdir -p ~/.openclaw/workspace-hex
+# Host 3 (charlie)
+mkdir -p ~/.openclaw-charlie/agents/charlie
+mkdir -p ~/.openclaw/workspace-charlie
 ```
 
 ### Step 2: Initialize Each Agent's Workspace
 
 ```bash
-# Host 1: Create Cora's workspace
-export OPENCLAW_PROFILE=cora
-export OPENCLAW_STATE_DIR=~/.openclaw-cora
-export OPENCLAW_CONFIG_PATH=~/.openclaw/openclaw-cora.json
+# Host 1: Create alpha's workspace
+export OPENCLAW_PROFILE=alpha
+export OPENCLAW_STATE_DIR=~/.openclaw-alpha
+export OPENCLAW_CONFIG_PATH=~/.openclaw/openclaw-alpha.json
 
-openclaw onboard --workspace ~/.openclaw/workspace-cora
+openclaw onboard --workspace ~/.openclaw/workspace-alpha
 # This creates AGENTS.md, SOUL.md, USER.md
 
-# Repeat for Shelly and Hex with their respective profiles/workspaces
+# Repeat for bravo and charlie with their respective profiles/workspaces
 ```
 
 ### Step 3: Create Config Files (Per Gateway)
 
-**File: `~/.openclaw/openclaw-cora.json`**
+**File: `~/.openclaw/openclaw-alpha.json`**
 
 ```json
 {
@@ -145,9 +145,9 @@ openclaw onboard --workspace ~/.openclaw/workspace-cora
   "agents": {
     "list": [
       {
-        "id": "cora",
-        "workspace": "~/.openclaw/workspace-cora",
-        "agentDir": "~/.openclaw-cora/agents/cora/agent"
+        "id": "alpha",
+        "workspace": "~/.openclaw/workspace-alpha",
+        "agentDir": "~/.openclaw-alpha/agents/alpha/agent"
       }
     ]
   },
@@ -155,12 +155,12 @@ openclaw onboard --workspace ~/.openclaw/workspace-cora
     "slack": {
       "accounts": [
         {
-          "accountId": "cora-bot",
-          "token": "xoxb-cora-production-token"
+          "accountId": "alpha-bot",
+          "token": "<SLACK_BOT_TOKEN>"
         }
       ],
       "channels": {
-        "C0AMLA1SG67": {
+        "<SLACK_CHANNEL_ID>": {
           "allowBots": true,
           "requireMention": true
         }
@@ -198,53 +198,53 @@ openclaw onboard --workspace ~/.openclaw/workspace-cora
 **Port allocation (spread across hosts):**
 
 ```
-Cora (Host 1):   18789 (browser: 18791, canvas: 18790)
-Shelly (Host 2): 18890 (browser: 18892, canvas: 18891)
-Hex (Host 3):    18991 (browser: 18993, canvas: 18992)
+alpha (Host 1):   18789 (browser: 18791, canvas: 18790)
+bravo (Host 2): 18890 (browser: 18892, canvas: 18891)
+charlie (Host 3):    18991 (browser: 18993, canvas: 18992)
 ```
 
 ### Step 4: Start Gateway Services
 
 ```bash
 # Host 1
-openclaw --profile cora gateway install
-systemctl --user start openclaw-cora-gateway
+openclaw --profile alpha gateway install
+systemctl --user start openclaw-alpha-gateway
 
 # Host 2
-openclaw --profile shelly gateway install
-systemctl --user start openclaw-shelly-gateway
+openclaw --profile bravo gateway install
+systemctl --user start openclaw-bravo-gateway
 
 # Host 3
-openclaw --profile hex gateway install
-systemctl --user start openclaw-hex-gateway
+openclaw --profile charlie gateway install
+systemctl --user start openclaw-charlie-gateway
 ```
 
 ### Step 5: Verify Boot
 
 ```bash
 # Check each gateway is running
-openclaw --profile cora status
-openclaw --profile shelly status
-openclaw --profile hex status
+openclaw --profile alpha status
+openclaw --profile bravo status
+openclaw --profile charlie status
 
-# Each should output: Running: true, Agents: ["cora"/"shelly"/"hex"]
+# Each should output: Running: true, Agents: ["alpha"/"bravo"/"charlie"]
 
 # Deep probe (checks Slack connectivity)
-openclaw --profile cora health --json
-openclaw --profile shelly health --json
-openclaw --profile hex health --json
+openclaw --profile alpha health --json
+openclaw --profile bravo health --json
+openclaw --profile charlie health --json
 ```
 
 ### Step 6: Test Agent-to-Agent Communication
 
-In Slack channel C0AMLA1SG67:
+In Slack channel <SLACK_CHANNEL_ID>:
 
 ```
-User: @cora test coordination
-Cora: @shelly what's your status?
-Shelly: @hex verify system health
-Hex: @cora all systems nominal
-Cora: Coordination successful!
+User: @alpha test coordination
+alpha: @bravo what's your status?
+bravo: @charlie verify system health
+charlie: @alpha all systems nominal
+alpha: Coordination successful!
 ```
 
 ---
@@ -266,16 +266,16 @@ openclaw gateway restart
 
 ### Multi-Gateway Fleet
 
-On restart of Gateway 1 (Cora):
+On restart of Gateway 1 (alpha):
 
 ```bash
-openclaw --profile cora gateway restart
+openclaw --profile alpha gateway restart
 ```
 
-- **Cora comes back online** in its main session
-- **Shelly and Hex remain active** on their gateways (no interruption to them)
-- Users can @-mention Cora again immediately
-- Session history for Cora is restored from local store
+- **alpha comes back online** in its main session
+- **bravo and charlie remain active** on their gateways (no interruption to them)
+- Users can @-mention alpha again immediately
+- Session history for alpha is restored from local store
 
 **Key insight:** Each agent's session is isolated, so restarting one gateway doesn't
 cascade failures.
@@ -289,9 +289,9 @@ cascade failures.
 Multi-agent systems can trap themselves in loops:
 
 ```
-Cora: @Shelly, what do you think?
-Shelly: @Cora, I'm not sure, you decide
-Cora: @Shelly, let me ask again...
+alpha: @bravo, what do you think?
+bravo: @alpha, I'm not sure, you decide
+alpha: @bravo, let me ask again...
 [infinite loop]
 ```
 
@@ -352,8 +352,8 @@ Cora: @Shelly, let me ask again...
 **Debug:**
 
 ```bash
-tail -f ~/.openclaw-shelly/logs/openclaw.log | grep -i mention
-# Should show: "Received mention: @cora"
+tail -f ~/.openclaw-bravo/logs/openclaw.log | grep -i mention
+# Should show: "Received mention: @alpha"
 ```
 
 ### "Slack mentions not matching agent name"
@@ -365,12 +365,12 @@ tail -f ~/.openclaw-shelly/logs/openclaw.log | grep -i mention
   "agents": {
     "list": [
       {
-        "id": "shelly",
+        "id": "bravo",
         "groupChat": {
           "mentionPatterns": [
-            "\\bshelly\\b", // Case-insensitive word boundary
-            "\\b@shelly\\b", // With @
-            "shell" // Partial match
+            "\\bbravo\\b", // Case-insensitive word boundary
+            "\\b@bravo\\b", // With @
+            "brav" // Partial match
           ]
         }
       }
@@ -382,9 +382,9 @@ tail -f ~/.openclaw-shelly/logs/openclaw.log | grep -i mention
 **Test in Slack:**
 
 ```
-@Shelly test
-shelly test
-@shelly test
+@bravo test
+bravo test
+@bravo test
 Shell test (if partial enabled)
 ```
 
@@ -398,7 +398,7 @@ lsof -i :18789
 kill -9 <pid>
 
 # Or use different port:
-openclaw --profile cora gateway --port 18850
+openclaw --profile alpha gateway --port 18850
 ```
 
 ### "Session history lost on restart"
@@ -407,18 +407,18 @@ openclaw --profile cora gateway --port 18850
 
 ```bash
 # Sessions exist?
-ls -la ~/.openclaw-cora/agents/cora/sessions/
+ls -la ~/.openclaw-alpha/agents/alpha/sessions/
 # Should have: sessions.json + *.jsonl transcript files
 
 # Config pointing to correct state dir?
 echo $OPENCLAW_STATE_DIR
-# Should be: ~/.openclaw-cora
+# Should be: ~/.openclaw-alpha
 
 # Restart gateway
-openclaw --profile cora gateway restart
+openclaw --profile alpha gateway restart
 
 # Check logs for session load errors
-tail -100 ~/.openclaw-cora/logs/openclaw.log | grep -i session
+tail -100 ~/.openclaw-alpha/logs/openclaw.log | grep -i session
 ```
 
 ---
@@ -428,7 +428,7 @@ tail -100 ~/.openclaw-cora/logs/openclaw.log | grep -i session
 ### Weekly Health Checks
 
 ```bash
-for profile in cora shelly hex; do
+for profile in alpha bravo charlie; do
   echo "=== $profile ==="
   openclaw --profile $profile health --json | jq '.agents[] | {id, status, lastActivity}'
 done
@@ -438,9 +438,9 @@ done
 
 ```bash
 # Collect logs from all three hosts to one place for analysis
-rsync -av host1:~/.openclaw-cora/logs/openclaw.log /local/logs/cora.log
-rsync -av host2:~/.openclaw-shelly/logs/openclaw.log /local/logs/shelly.log
-rsync -av host3:~/.openclaw-hex/logs/openclaw.log /local/logs/hex.log
+rsync -av host1:~/.openclaw-alpha/logs/openclaw.log /local/logs/alpha.log
+rsync -av host2:~/.openclaw-bravo/logs/openclaw.log /local/logs/bravo.log
+rsync -av host3:~/.openclaw-charlie/logs/openclaw.log /local/logs/charlie.log
 
 # Search for errors across all logs
 grep -i error /local/logs/*.log
@@ -449,10 +449,10 @@ grep -i error /local/logs/*.log
 ### Update Rolling (Zero Downtime)
 
 ```bash
-# Update Gateway 1 (Cora) while others stay online
-openclaw --profile cora gateway stop
+# Update Gateway 1 (alpha) while others stay online
+openclaw --profile alpha gateway stop
 npm install -g @openclaw/gateway@latest  # or git pull + npm install
-openclaw --profile cora gateway start
+openclaw --profile alpha gateway start
 
 # Other agents continue unaffected
 ```
@@ -485,5 +485,5 @@ openclaw --profile cora gateway start
 
 ---
 
-**Maintained by:** Cora (Research) **Last Updated:** 2026-03-21 **Status:**
+**Maintained by:** alpha (Research) **Last Updated:** 2026-03-21 **Status:**
 Production-tested ✅

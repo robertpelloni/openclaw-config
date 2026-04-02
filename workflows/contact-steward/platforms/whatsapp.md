@@ -109,14 +109,14 @@ WHERE their_jid = '<number>@s.whatsapp.net';
 
 ### LID Resolution
 
-LID (Linked Device Identifier) JIDs like `265218726821991@lid` are opaque — no phone
+LID (Linked Device Identifier) JIDs like `100000000000001@lid` are opaque — no phone
 number is extractable from the JID itself. But the `whatsmeow_lid_map` table in
 `~/.wacli/session.db` maps LIDs to phone numbers:
 
 ```sql
 -- Resolve a LID to a phone number (same database: session.db)
 SELECT pn FROM whatsmeow_lid_map WHERE lid = '<lid_number>';
--- Returns the phone number (e.g., '50683545181')
+-- Returns the phone number (e.g., '15559876543')
 ```
 
 **Always resolve LID -> phone number -> check `full_name` on the phone JID.**
@@ -124,9 +124,9 @@ SELECT pn FROM whatsmeow_lid_map WHERE lid = '<lid_number>';
 A LID contact will typically NOT have `full_name` even for saved contacts — only the
 phone-number JID carries the address book data. Example:
 
-- `265218726821991@lid` -> push_name "Kevin Sheehy", no full_name on LID entry
-- LID map: `265218726821991` -> `50683545181`
-- `50683545181@s.whatsapp.net` -> full_name "Kevin Sheehy" — saved
+- `100000000000001@lid` -> push_name "Jane Doe", no full_name on LID entry
+- LID map: `100000000000001` -> `15559876543`
+- `15559876543@s.whatsapp.net` -> full_name "Jane Doe" — saved
 
 Without this resolution, you'd incorrectly flag saved contacts as unknown.
 

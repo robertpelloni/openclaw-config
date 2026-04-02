@@ -153,7 +153,7 @@ Returns `dialogue[]` array with speaker-attributed entries:
 - `customFields`: Array of {key, value} pairs (keys from `/contact-custom-fields`)
 - ⚠️ PATCH replaces entire `defaultFields` — always include ALL existing fields
 
-### Custom Fields (Julianna's workspace)
+### Custom Fields (example workspace)
 
 - `Property Associated` (key: `1712532493777`, type: string)
 - `Address` (key: `1700067557182`, type: address)

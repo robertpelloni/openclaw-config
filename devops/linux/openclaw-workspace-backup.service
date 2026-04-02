@@ -16,11 +16,10 @@ Type=oneshot
 ExecStart=/bin/bash -c '\
   set -eo pipefail; \
   export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"; \
-  export RESTIC_PASSWORD_FILE="$HOME/.openclaw/restic-password"; \
   REPO="$HOME/openclaw-backups"; \
   LOG="$HOME/.openclaw/logs/workspace-backup.log"; \
   mkdir -p "$(dirname "$LOG")"; \
-  restic -r "$REPO" backup "$HOME/.openclaw" \
+  restic -r "$REPO" --insecure-no-password backup "$HOME/.openclaw" \
     --exclude browser --exclude skill-venv --exclude logs \
     --tag automated --quiet 2>&1 | tee -a "$LOG"; \
   WORKSPACE=$(python3 -c "import json,os; d=json.load(open(os.path.expanduser(\"~/.openclaw/openclaw.json\"))); print(d.get(\"agents\",{}).get(\"defaults\",{}).get(\"workspace\",\"\"))" 2>/dev/null) || true; \
@@ -28,10 +27,10 @@ ExecStart=/bin/bash -c '\
     case "$WORKSPACE" in \
       "$HOME/.openclaw/"*) ;; \
       *) echo "also backing up workspace: $WORKSPACE" | tee -a "$LOG"; \
-         restic -r "$REPO" backup "$WORKSPACE" --tag automated --quiet 2>&1 | tee -a "$LOG" ;; \
+         restic -r "$REPO" --insecure-no-password backup "$WORKSPACE" --tag automated --quiet 2>&1 | tee -a "$LOG" ;; \
     esac; \
   fi; \
-  restic -r "$REPO" forget \
+  restic -r "$REPO" --insecure-no-password forget \
     --keep-daily 7 --keep-weekly 4 --keep-monthly 6 \
     --prune --quiet 2>&1 | tee -a "$LOG"'
 StandardError=append:%h/.openclaw/logs/workspace-backup-errors.log

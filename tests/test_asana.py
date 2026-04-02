@@ -186,7 +186,7 @@ class TestValidation:
         assert "numeric" in result.stderr.lower()
 
 
-# Use "100x Nick" project and "Carmenta Collective" workspace for integration tests
+# Use a test project and workspace for integration tests
 WORKSPACE_GID = "1195259077882228"
 PROJECT_GID = "1211197449253083"
 

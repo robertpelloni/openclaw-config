@@ -266,7 +266,7 @@ class TestFormatNumbers:
                     "formattedNumber": "(555) 123-4567",
                     "number": "+15551234567",
                     "type": "local",
-                    "users": [{"name": "Nick Sullivan", "email": "nick@example.com"}],
+                    "users": [{"name": "Jane Doe", "email": "jane@example.com"}],
                 }
             ]
         }
@@ -275,7 +275,7 @@ class TestFormatNumbers:
         assert "**ID:** PN123abc" in result
         assert "**Number:** (555) 123-4567" in result
         assert "**Type:** local" in result
-        assert "**Users:** Nick Sullivan" in result
+        assert "**Users:** Jane Doe" in result
 
     def test_empty_data(self):
         assert format_numbers({"data": []}) == "No phone numbers found."
@@ -298,7 +298,7 @@ class TestFormatConversations:
             "data": [
                 {
                     "id": "CV123",
-                    "name": "Nick Sullivan",
+                    "name": "Jane Doe",
                     "participants": ["+15551234567", "+15559876543"],
                     "lastActivityAt": "2026-03-01T12:00:00Z",
                     "phoneNumberId": "PN123abc",
@@ -306,7 +306,7 @@ class TestFormatConversations:
             ]
         }
         result = format_conversations(data)
-        assert "## Nick Sullivan" in result
+        assert "## Jane Doe" in result
         assert "**ID:** CV123" in result
         assert "+15551234567, +15559876543" in result
         assert "2026-03-01T12:00:00Z" in result
@@ -419,16 +419,16 @@ class TestFormatUsers:
             "data": [
                 {
                     "id": "US123",
-                    "firstName": "Nick",
-                    "lastName": "Sullivan",
-                    "email": "nick@example.com",
+                    "firstName": "Jane",
+                    "lastName": "Doe",
+                    "email": "jane@example.com",
                     "role": "admin",
                 }
             ]
         }
         result = format_users(data)
-        assert "## Nick Sullivan" in result
-        assert "**Email:** nick@example.com" in result
+        assert "## Jane Doe" in result
+        assert "**Email:** jane@example.com" in result
         assert "**Role:** admin" in result
 
     def test_empty_data(self):
@@ -525,7 +525,7 @@ class TestFormatVoicemails:
                 "duration": 30,
                 "status": "completed",
                 "url": "https://recordings.openphone.com/vm123.mp3",
-                "transcript": "Hi Nick, this is Paul from Urbanspace. Give me a call back.",
+                "transcript": "Hi there, this is Paul from Urbanspace. Give me a call back.",
                 "createdAt": "2026-03-01T08:00:00Z",
             }
         }
@@ -588,14 +588,14 @@ class TestFormatTranscript:
                 "createdAt": "2026-03-01T14:30:00Z",
                 "dialogue": [
                     {
-                        "content": "Hello, this is Nick",
+                        "content": "Hello, this is Alex",
                         "start": 0.16,
                         "end": 1.5,
                         "identifier": "+15551234567",
                         "userId": "US123",
                     },
                     {
-                        "content": "Hi Nick, this is Jane from Acme",
+                        "content": "Hi Alex, this is Jane from Acme",
                         "start": 2.0,
                         "end": 4.5,
                         "identifier": "+15559876543",
@@ -606,8 +606,8 @@ class TestFormatTranscript:
         }
         result = format_transcript(data)
         assert "# Call Transcript" in result
-        assert "[00:00] **+15551234567 (user):** Hello, this is Nick" in result
-        assert "[00:02] **+15559876543:** Hi Nick, this is Jane from Acme" in result
+        assert "[00:00] **+15551234567 (user):** Hello, this is Alex" in result
+        assert "[00:02] **+15559876543:** Hi Alex, this is Jane from Acme" in result
 
     def test_timestamp_formatting_minutes(self):
         """Timestamps over 60s should show mm:ss correctly."""

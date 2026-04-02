@@ -236,7 +236,7 @@ weekly and maps them against the fleet's exposure.
 `devops/notification-routing.md` defines a two-lane model:
 
 - **Admin lane** — System health alerts go to the fleet owner (e.g., "gateway down on
-  Ali's machine")
+  machine-2")
 - **User lane** — Cron outputs go to the host person (e.g., EOD briefing, email alerts)
 
 Lanes never mix. Health check agents use `delivery.mode: "none"` and self-notify the
@@ -264,10 +264,10 @@ active conversations.
 
 Deep-dive guides for advanced setups and multi-agent coordination:
 
-| Document                              | Purpose                                                                               |
-| ------------------------------------- | ------------------------------------------------------------------------------------- |
-| **docs/MULTI_AGENT_COMMUNICATION.md** | Setup multi-agent coordination across separate OpenClaw gateways via Slack @-mentions |
-| **docs/FLEET_BOOT_PATTERNS.md**       | Complete runbook for booting, scaling, and managing a fleet of 3+ agents              |
+| Document                                   | Purpose                                                                               |
+| ------------------------------------------ | ------------------------------------------------------------------------------------- |
+| **knowledge/multi-agent-communication.md** | Setup multi-agent coordination across separate OpenClaw gateways via Slack @-mentions |
+| **knowledge/fleet-boot-patterns.md**       | Complete runbook for booting, scaling, and managing a fleet of 3+ agents              |
 
 ### Multi-Agent Coordination
 

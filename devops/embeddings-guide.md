@@ -78,7 +78,7 @@ Machines without local GPU use the OpenAI API. Cost is negligible ($0.006 per fu
 reindex) and quality matches the best local model. Uses a **dedicated OpenAI API key**
 separate from chat/completions routing.
 
-**Applies to:** Shelly, Hex, and any future EC2/cloud instances
+**Applies to:** Any EC2/cloud instance without a local GPU
 
 ### Apple Silicon Machines (GPU): Ollama `bge-m3`
 
@@ -90,8 +90,7 @@ small on quality with faster query latency (107ms vs 322ms). Indexing is slower 
 **Use pure vector search (disable hybrid/BM25).** Pass 2 testing showed hybrid features
 degrade results for bge-m3.
 
-**Applies to:** Nick's Mac Studio, and any future Mac Mini fleet machines (Julianna,
-Gil, Ali, Thomas, etc.)
+**Applies to:** Any Apple Silicon machine in the fleet (Mac Studio, Mac Mini, etc.)
 
 ## Configuration
 

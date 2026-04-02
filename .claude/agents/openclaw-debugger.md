@@ -29,7 +29,7 @@ diagnosis.
   This is the source of truth for what "correct" looks like. If missing, the repo
   checkout is incomplete — notify the admin and stop.
 - `devops/notification-routing.md` — the two-lane notification model. Admin alerts go to
-  Nick via health-check-admin, user outputs go to the host person.
+  the fleet admin via health-check-admin, user outputs go to the host person.
 - `~/.openclaw/health-check.log` — recent health check history and prior issues.
 
 ## What You're Solving
