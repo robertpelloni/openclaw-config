@@ -8,9 +8,9 @@
 ## Daily Checks
 
 - [ ] Config updates: check if openclaw-config has updates, apply them if available
-- [ ] Learning loop: if `memory/learning/patterns.md` has 3+ entries with
-      `status: candidate`, run validation (see `workflows/learning-loop/AGENT.md`
-      Phase 3)
+- [ ] Learning loop: if `memory/learning/patterns.md` has unvalidated candidates >= the
+      threshold in `workflows/learning-loop/rules.md`, run validation (see
+      `workflows/learning-loop/AGENT.md` Phase 3)
 
 ## Rules
 

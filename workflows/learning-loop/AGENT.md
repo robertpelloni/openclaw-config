@@ -162,14 +162,18 @@ Before creating a new pattern, check if it already exists in:
 - `patterns.md` (add evidence, bump frequency)
 - Any workflow's `agent_notes.md` (already known — skip)
 - `memory/topics/` files (already documented — skip)
+- `memory/learning/archive/` (previously tried — note in the new candidate that this
+  pattern was seen before, link to the archive entry)
 
 ---
 
 ## Phase 3: Validation and Promotion
 
-**When:** Weekly cron, or triggered when patterns.md accumulates 3+ unvalidated
-candidates. **Where:** Reads `patterns.md`, promotes to permanent locations. **Who:**
-Learning loop workflow (this file), run on an expensive model.
+**When:** Weekly cron, or triggered when patterns.md accumulates unvalidated candidates
+
+> = the `validation_trigger_count` in `rules.md` (default: 3). candidates. **Where:**
+> Reads `patterns.md`, promotes to permanent locations. **Who:** Learning loop workflow
+> (this file), run on an expensive model.
 
 ### Validation Checklist
 
@@ -310,7 +314,8 @@ The librarian's daily cron should include a learning analysis pass:
 Add to the heartbeat rotation:
 
 ```markdown
-- [ ] Learning loop: check if patterns.md has 3+ unvalidated candidates → run validation
+- [ ] Learning loop: check if patterns.md has unvalidated candidates >= rules.md
+      threshold → run validation
 ```
 
 ### With Workflows (Inline)
