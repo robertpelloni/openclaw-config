@@ -1,15 +1,7 @@
 # Corrections
 
-Recent observations from conversations and workflows. Add new entries at the top (newest
-first).
+Recent learnings. Each entry states what the correct behavior IS, not what went wrong.
+New entries go at the top. Entries that recur become patterns and get promoted.
 
-<!-- Entries older than 30 days that haven't become patterns are archived monthly -->
-<!-- Format:
-## YYYY-MM-DD — [source]
-
-- **type:** correction | error | discovery | preference
-- **trigger:** What happened
-- **observation:** What went wrong or what was learned
-- **action_taken:** What was done about it
-- **evidence:** How we know this
--->
+<!-- Pipeline metadata lives in HTML comments. The LLM reads the prose;
+     the detection pipeline reads the comments. -->

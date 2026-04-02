@@ -170,22 +170,23 @@ After standard memory maintenance, run the learning loop's pattern detection pas
 is how corrections compound into improvements over time.
 
 1. **Read** `memory/learning/corrections.md` — scan entries from the last 30 days
-2. **Group** entries by similarity — same trigger, same domain, same type of correction
+2. **Group** entries by similarity — same domain, same kind of learning
 3. **Detect patterns** — if 2+ corrections share the same root cause across different
-   sessions, that's a pattern candidate
+   sessions, that's a pattern candidate. Synthesize the corrections into a single
+   operating rule (see `workflows/learning-loop/AGENT.md` Phase 2 for format)
 4. **Check for duplicates** — before creating a new pattern, check if it already exists
    in `memory/learning/patterns.md` or in any workflow's `agent_notes.md`
-5. **Write candidates** to `memory/learning/patterns.md` using the format documented in
-   `workflows/learning-loop/AGENT.md` Phase 2
+5. **Write candidates** to `memory/learning/patterns.md` as complete, self-contained
+   rules with pipeline metadata in HTML comments
 6. **Prune stale corrections** — archive entries older than 30 days that never became
    patterns (move to `memory/learning/archive/YYYY-QN.md`). **Exception:** do not
-   archive corrections referenced as evidence in any `status: candidate` pattern — those
-   entries must survive until the pattern is validated or expired
-7. **Prune stale pattern candidates** — archive entries in `patterns.md` with
-   `status: candidate` older than 60 days (set `status: expired`, move to archive)
-8. **Flag stale promoted rules** — check `patterns.md` for entries with
-   `status: promoted` where `promoted_on` is older than 90 days. These are candidates
-   for review — note them in today's daily file but don't auto-delete
+   archive corrections that informed a pattern still marked `candidate` in its HTML
+   comment — those entries must survive until the pattern is promoted or expired
+7. **Prune stale pattern candidates** — archive entries in `patterns.md` whose HTML
+   comment has `status: candidate` and is older than 60 days (move to archive)
+8. **Flag stale promoted rules** — check `patterns.md` for entries whose HTML comment
+   has `status: promoted` older than 90 days. Note them in today's daily file for review
+   but don't auto-delete
 
 Log the results to today's daily file:
 

@@ -51,45 +51,71 @@ corrections.md     pattern          promoted to       preventing
 **When:** During or after conversations and workflow runs. **Where:**
 `memory/learning/corrections.md` **Who:** Any OpenClaw session (main or workflow).
 
-After notable events, add a structured observation at the top (newest first):
+When you learn something worth remembering, write it as an instruction your future self
+can act on. State the correct behavior, not what went wrong.
+
+### The Format
+
+Each entry is a heading that names the domain and the rule, followed by a paragraph
+explaining what to do and why. Pipeline metadata goes in an HTML comment after the
+entry.
+
+**Good** — reads like a rule:
 
 ```markdown
-## YYYY-MM-DD — [source]
+## Email classification — mailing lists are not contacts
 
-- **type:** correction | error | discovery | preference
-- **trigger:** What happened (the situation)
-- **observation:** What went wrong or what was learned
-- **action_taken:** What was done about it (if anything)
-- **evidence:** How we know this (user correction, error log, outcome)
+Addresses matching `*@lists.*`, `*-noreply@*`, and `*-bounces@*` are mailing list
+infrastructure. Skip them during contact ingestion. They pollute the contact graph and
+trigger false follow-up suggestions.
+
+<!-- source: contact-steward | type: correction -->
 ```
 
-### What Gets Captured
+**Bad** — reads like an incident report:
 
-| Type           | Trigger                                         | Example                                    |
-| -------------- | ----------------------------------------------- | ------------------------------------------ |
-| **correction** | Human said "no, do it this way"                 | "Don't classify mailing lists as contacts" |
-| **error**      | Something failed, then a working path was found | "API timeout at 30s, succeeded at 60s"     |
-| **discovery**  | Non-obvious pattern found through experience    | "This sender always CC's their assistant"  |
-| **preference** | Human expressed how they want things done       | "Send alerts to Slack, not WhatsApp"       |
+```markdown
+## 2026-03-28 — contact-steward
 
-### What Does NOT Get Captured
+- **type:** correction
+- **trigger:** Classified marketing@ as personal contact
+- **observation:** User said "that's a mailing list, not a person"
+- **action_taken:** Removed from contacts, added pattern to rules
+```
 
-- Task progress or session outcomes (ephemeral — stays in daily files)
-- Things already documented in rules.md or AGENTS.md (redundant)
-- One-time debugging steps for resolved issues (noise)
-- Facts that belong in memory/topics/ or memory/people/ (route there directly)
+The difference: the good version is an instruction. The bad version is a story that
+happens to contain an instruction. Your future self doesn't need the story.
 
-### Capture Trigger
+### The Positive Framing Rule
+
+State what IS correct. Don't describe what went wrong, even as context.
+
+- "Mailing lists are not contacts — skip them" (positive rule)
+- NOT "Don't classify mailing lists as contacts" (negation of the error)
+- NOT "We incorrectly classified mailing lists as contacts" (incident report)
+
+When an anti-pattern is essential context, state the correct behavior first, then
+briefly note the failure mode: "Use the master event's organizer field for recurring
+events. Individual occurrence senders may be delegates."
+
+### When to Capture
 
 At the end of meaningful interactions, silently self-evaluate:
 
-1. **Did my human correct me?** → Log as `correction`
-2. **Did something fail before succeeding?** → Log as `error`
-3. **Did I discover a non-obvious pattern?** → Log as `discovery`
-4. **Did my human state a preference I didn't know?** → Log as `preference`
+- Did my human correct me? ("No, do it this way")
+- Did something fail before I found a working path?
+- Did I discover a non-obvious pattern through experience?
+- Did my human state a preference I didn't know about?
 
-If none apply, don't write anything. Most sessions produce zero corrections. That's
-healthy.
+If any apply, write the learning as a positive rule. If none apply, don't write
+anything. Most sessions produce zero corrections. That's healthy.
+
+### What NOT to Capture
+
+- Task progress or session outcomes (ephemeral — stays in daily files)
+- Things already documented in rules.md or AGENTS.md (redundant)
+- One-time debugging steps (noise)
+- Facts that belong in memory/topics/ or memory/people/ (route there directly)
 
 **Important:** Capture is a side effect, not a task. Don't announce it. Don't ask
 permission. Just add to the file and move on.
@@ -111,59 +137,60 @@ learning analysis).
 
 1. Read `memory/learning/corrections.md` (detection window from `rules.md`, default 30
    days)
-2. Group entries by similarity — same trigger, same domain, same type
+2. Group entries by similarity — same domain, same kind of learning
 3. Apply the **pattern threshold** from `rules.md` (default: 2+ occurrences across
    different sessions = candidate)
 4. Write candidates to `memory/learning/patterns.md`
 
-### Pattern Candidate Format
+### The Pattern Format
+
+Each pattern is a **complete operating rule** that a future LLM session can follow
+without any other context. Include the scope (which workflows it applies to), the rule,
+and why it matters. State where it should be promoted to.
+
+**Good** — a self-contained rule:
 
 ```markdown
-## [Pattern name — descriptive, claim-style]
+## Mailing list addresses are never contacts
 
-- **frequency:** N corrections in N days
-- **type:** correction | error | discovery | preference
-- **evidence:** [YYYY-MM-DD], [YYYY-MM-DD], ...
-- **proposed_rule:** What should change (specific, actionable)
-- **destination:** workflow:[name]/agent_notes | memory/topics/[name] |
-  templates/AGENTS.md
-- **status:** candidate
-- **confidence:** high | medium | low
-- **detected:** YYYY-MM-DD
+Addresses matching `*@lists.*`, `*-noreply@*`, `*-bounces@*`, and `*+unsubscribe@*` are
+mailing list infrastructure. During contact ingestion, skip them entirely. They are not
+people and should never appear in contact suggestions, follow-up prompts, or
+relationship graphs. Applies to all email-sourced contact discovery.
+
+Destination: contact-steward `agent_notes.md` and email-steward `agent_notes.md`
+
+<!-- status: candidate | occurrences: 3 | sources: contact-steward, main-session -->
 ```
 
-### Confidence Scoring
+**Bad** — a metadata dump with the rule buried:
 
-- **high** — Explicit human corrections, consistent pattern, clear fix
-- **medium** — Errors with working alternatives found, or preferences inferred from
-  behavior
-- **low** — Single discoveries, ambiguous signals, could be coincidence
+```markdown
+## Mailing list classification pattern
 
-**Only `high` and `medium` candidates proceed to validation.** Low-confidence candidates
-stay in patterns.md and accumulate more evidence over time.
+- **frequency:** 3 corrections in 7 days
+- **type:** correction
+- **proposed_rule:** Skip addresses matching _@lists._
+- **confidence:** high
+```
 
-### Confidence Upgrades
+The good version is an instruction. The bad version is a form that happens to contain a
+rule on line 4.
 
-During pattern detection, when new corrections match an existing low-confidence
-candidate, update the candidate:
+### Pipeline Metadata
 
-- Bump the frequency count and add the new evidence date
-- If the candidate now has 3+ occurrences, upgrade confidence from `low` to `medium`
-- If any of the new evidence is an explicit human correction (not just a discovery),
-  upgrade to `medium` regardless of count
-
-This ensures low-confidence candidates have a real path to validation instead of
-silently expiring.
+The detection pipeline needs some metadata to function (occurrence counts, source
+sessions, candidate vs. promoted status). Store this in HTML comments at the end of each
+entry. The LLM consumer reads the prose rule; the pipeline reads the comments.
 
 ### Deduplication
 
 Before creating a new pattern, check if it already exists in:
 
-- `patterns.md` (add evidence, bump frequency)
+- `patterns.md` (merge the learnings, strengthen the rule)
 - Any workflow's `agent_notes.md` (already known — skip)
 - `memory/topics/` files (already documented — skip)
-- `memory/learning/archive/` (previously tried — note in the new candidate that this
-  pattern was seen before, link to the archive entry)
+- `memory/learning/archive/` (previously tried — note this in the new entry)
 
 ---
 

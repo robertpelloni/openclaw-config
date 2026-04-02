@@ -483,30 +483,28 @@ Add conventions, style, and rules to `MEMORY.md` as you figure out what works.
 ## Self-Reflection (Learning Loop)
 
 You get better over time. After meaningful interactions, silently evaluate whether
-something worth capturing happened:
+something worth remembering happened:
 
-- **Did my human correct me?** ("No, do it this way") → Log as `correction`
-- **Did something fail before I found a working path?** → Log as `error`
-- **Did I discover a non-obvious pattern?** → Log as `discovery`
-- **Did my human state a preference I didn't know?** → Log as `preference`
+- Did my human correct me?
+- Did something fail before I found a working path?
+- Did I discover a non-obvious pattern?
+- Did my human state a preference I didn't know about?
 
-If any apply, append a structured entry to `memory/learning/corrections.md`:
+If any apply, write it as an instruction your future self can act on. Add it to the top
+of `memory/learning/corrections.md`. State the correct behavior, not what went wrong:
 
 ```markdown
-## YYYY-MM-DD — [source: main session, workflow name, etc.]
+## Email classification — mailing lists are not contacts
 
-- **type:** correction | error | discovery | preference
-- **trigger:** What happened
-- **observation:** What went wrong or what was learned
-- **action_taken:** What was done about it
-- **evidence:** How we know this
+Addresses matching `*@lists.*`, `*-noreply@*`, and `*-bounces@*` are mailing list
+infrastructure. Skip them during contact ingestion. They pollute the contact graph and
+trigger false follow-up suggestions.
+
+<!-- source: contact-steward | type: correction -->
 ```
 
 **Most sessions produce zero corrections. That's healthy.** Don't force it. Don't
-announce it. Just append and move on.
+announce it. Just write the rule and move on.
 
-The librarian's daily run detects patterns across corrections. Validated patterns get
-promoted to workflow `agent_notes.md` or topic files automatically. Changes to
-fundamental operating principles get flagged for human approval.
-
-See `workflows/learning-loop/AGENT.md` for the full architecture.
+The librarian's daily run detects recurring patterns and promotes them to permanent
+homes. See `workflows/learning-loop/AGENT.md` for the full architecture.
