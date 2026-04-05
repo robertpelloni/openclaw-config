@@ -308,18 +308,13 @@ class TestWriteIntegration:
 
     def test_create_and_delete_inbox(self):
         """Create an inbox, verify it exists, then delete it."""
-        create_result = run_skill("create")
+        # Use raw JSON to get a clean inbox_id without parsing markdown artifacts
+        create_result = run_skill("raw", "POST", "/inboxes")
         assert create_result.returncode == 0
-        assert "@" in create_result.stdout
 
-        inbox_id = None
-        for line in create_result.stdout.splitlines():
-            if "id:" in line.lower():
-                parts = line.split(":", 1)
-                if len(parts) > 1:
-                    inbox_id = parts[1].strip().strip("`")
-                    break
+        data = json.loads(create_result.stdout)
+        inbox_id = data.get("inbox_id") or data.get("id")
+        assert inbox_id, f"No inbox_id in response: {create_result.stdout}"
 
-        if inbox_id:
-            delete_result = run_skill("delete", inbox_id)
-            assert delete_result.returncode == 0
+        delete_result = run_skill("delete", inbox_id)
+        assert delete_result.returncode == 0
