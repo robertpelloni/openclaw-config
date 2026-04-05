@@ -1,101 +1,112 @@
 # OpenClaw Model Configs, OpenRouter, and Jobs
 
-A practical guide to how OpenClaw handles model configuration, provider routing, and
-scheduled jobs.
+How OpenClaw handles model selection, provider routing, and scheduled autonomous jobs.
 
-## Model Configuration
+## The Model Tier System
 
-Models are configured in `~/.openclaw/openclaw.json` across several scopes:
+OpenClaw uses four model tiers. Each tier is an **alias** — a short name that resolves
+to a specific model ID in the catalog. Aliases stay stable across provider changes and
+model upgrades.
+
+### Tiers
+
+| Tier       | Model         | What it's for                                                                                                                                      |
+| ---------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **haiku**  | Claude Haiku  | Fast, cheap. Checking known patterns, triage, high-frequency polling. The workhorse for anything that runs every 5-30 minutes.                     |
+| **sonnet** | Claude Sonnet | Judgment calls. Triage that needs reasoning, daily reports, routing decisions. The sweet spot for "needs to think but doesn't need to think hard." |
+| **opus**   | Claude Opus   | Deep synthesis and strategy. Daily reflections, security analysis, weekly reviews. The expensive one — used when quality matters more than speed.  |
+| **grok**   | Grok 3        | Unfiltered perspectives. Zero guardrails, politically incorrect takes, dark humor. Falls back through OpenRouter if native unavailable.            |
+
+Additional tiers on some instances:
+
+| Tier               | Model                         | What it's for                                                                 |
+| ------------------ | ----------------------------- | ----------------------------------------------------------------------------- |
+| **llama-maverick** | Llama (via LM Studio)         | Local-only, offline tasks. Sleep routines, wind-down — runs without internet. |
+| **default**        | Whatever the primary model is | Used when the job doesn't need a specific tier.                               |
+
+### Smart Delegation (Real-Time Model Routing)
+
+For live conversation, OpenClaw routes to one of three modes:
+
+| Mode           | Model | Thinking       | When                                                             |
+| -------------- | ----- | -------------- | ---------------------------------------------------------------- |
+| **Direct**     | Opus  | off            | Default for everything — conversation, quick answers, daily life |
+| **Deep Think** | Opus  | medium or high | Complex strategy, multi-factor decisions, hard reasoning         |
+| **Unfiltered** | Grok  | default        | Politically incorrect, edgy, when guardrails are unwanted        |
+
+Most messages stay in Direct mode. Escalation to Deep Think only happens when the
+quality gain justifies 30-90 seconds of silence (no streaming during sub-agent work).
+
+Reasoning levels for Deep Think:
+
+- **low** — quick sanity check ("Is this contract clause standard?")
+- **medium** — most escalations, analysis with tradeoffs ("Which job offer?")
+- **high** — explicit "ultrathink" or genuinely high stakes ("Should I sell the
+  company?")
+
+## Provider Format (Where People Get Burned)
+
+The same model has different IDs depending on which provider serves it. This is the #1
+source of configuration errors.
+
+| Provider             | Format                              | Example                                  |
+| -------------------- | ----------------------------------- | ---------------------------------------- |
+| **Anthropic direct** | `anthropic/claude-{tier}-{version}` | `anthropic/claude-sonnet-4-6`            |
+| **OpenRouter**       | `openrouter/{org}/{model}`          | `openrouter/anthropic/claude-sonnet-4.6` |
+| **xAI direct**       | `x-ai/{model}`                      | `x-ai/grok-3`                            |
+| **OpenRouter xAI**   | `openrouter/{org}/{model}`          | `openrouter/x-ai/grok-3`                 |
+| **LM Studio**        | `lmstudio/{org}/{model}`            | `lmstudio/meta/llama-maverick`           |
+
+The critical difference: Anthropic direct uses **hyphens** in versions (`4-6`), while
+OpenRouter uses **dots** (`4.6`). Getting this wrong causes silent failures.
+
+### Fallback Chains
+
+When a provider is down, OpenClaw falls through alternatives:
+
+**Primary conversation:**
 
 ```
-agents.defaults.model.primary      → Main conversational model
-agents.defaults.model.fallbacks    → Ordered fallback chain
-agents.defaults.models             → Model catalog (model ID → {alias, params})
-agents.defaults.heartbeat.model    → Lightweight ping model
-agents.defaults.subagents.model    → Model for spawned sub-agents
-Per-cron payload.model             → Override per scheduled job
+anthropic/claude-opus-4-6 → openrouter/openai/gpt-5.2 → anthropic/claude-sonnet-4-6
 ```
 
-### Aliases vs. Full IDs
-
-OpenClaw uses **aliases** (`sonnet`, `opus`, `haiku`, `grok`) in user-facing configs
-like cron definitions, and **full model IDs** (`anthropic/claude-sonnet-4-6`) in the
-actual catalog. Aliases are short, forwards-compatible, and resolve to whatever full ID
-the catalog maps them to.
-
-### Changing a Model
-
-The `update-model` skill walks through a mandatory 5-step process:
-
-1. **Discovery** — `openclaw models list --all` to see what's available (never guess)
-2. **Validate** — Confirm the model ID exists in the catalog
-3. **Update** — Change the config value
-4. **Verify** — Run a test prompt to confirm the model responds
-5. **Monitor** — Watch for failures in the first few hours
-
-This exists because model names go stale fast — providers rename, version, and deprecate
-constantly. A wrong model ID in a cron job fails silently at 3am.
-
-## OpenRouter Integration
-
-OpenRouter is a multi-provider gateway that gives access to models from many providers
-through a single API. OpenClaw treats it as a first-class provider.
-
-### Format Matters
-
-Provider format differences are a common source of bugs:
-
-| Provider         | Format                              | Example                                         |
-| ---------------- | ----------------------------------- | ----------------------------------------------- |
-| Anthropic direct | `anthropic/claude-{tier}-{version}` | `anthropic/claude-sonnet-4-6` (hyphens)         |
-| OpenRouter       | `openrouter/{org}/{model}`          | `openrouter/anthropic/claude-sonnet-4.6` (dots) |
-
-Note the subtle difference: Anthropic direct uses **hyphens** in version numbers
-(`4-6`), while OpenRouter uses **dots** (`4.6`). Getting this wrong causes silent
-failures.
-
-### When OpenRouter Gets Used
-
-- **Fallback chains** — When the primary provider is down, OpenRouter provides
-  alternative routing to the same or equivalent models
-- **Cross-provider access** — Models like Grok or GPT that aren't available through the
-  primary provider
-- **Cost optimization** — Some models are cheaper through OpenRouter depending on usage
-  patterns
-
-Example fallback chain:
-
-```
-Primary:   anthropic/claude-opus-4-6          (direct)
-Fallback:  openrouter/openai/gpt-5.2          (cross-provider via OpenRouter)
-Fallback:  anthropic/claude-sonnet-4-6         (cheaper direct fallback)
-```
-
-## Smart Delegation (Model Routing)
-
-OpenClaw routes prompts to different models based on the task:
-
-| Mode           | Model               | When                                     |
-| -------------- | ------------------- | ---------------------------------------- |
-| **Direct**     | Opus (thinking off) | Default conversation                     |
-| **Deep Think** | Opus (thinking on)  | Complex strategy, multi-factor decisions |
-| **Unfiltered** | Grok                | Edge cases, unfiltered perspectives      |
-
-Escalation signals (when to upgrade from Direct to Deep Think):
-
-- "Think hard about this", multi-factor decisions, complex debugging
-- **Not** triggered by: long messages, multiple simple questions, casual chat
-
-Grok fallback chain when native unavailable:
+**Grok (unfiltered mode):**
 
 ```
 x-ai/grok-3 → openrouter/x-ai/grok-3 → openrouter/openai/gpt-5.2 → handle directly
 ```
 
+## Config Structure
+
+Models are configured in `~/.openclaw/openclaw.json` under `agents.defaults`:
+
+```
+model.primary      → The main conversational model (e.g., anthropic/claude-opus-4-6)
+model.fallbacks    → Ordered fallback chain when primary is unavailable
+models             → Model catalog: maps model ID → {alias, params}
+heartbeat.model    → Lightweight model for health pings (typically sonnet)
+subagents.model    → Model for spawned sub-agents (typically sonnet)
+```
+
+Cron jobs can override the model per-job via `openclaw cron edit <id> --model <alias>`.
+
+### The Discovery Rule
+
+Model IDs are **never hardcoded from memory**. They're always verified against the live
+catalog:
+
+```bash
+openclaw models list --all | grep -i sonnet
+```
+
+This exists because model names change constantly. A stale ID in a cron job fails
+silently at 3am. The `update-model` skill enforces a mandatory 5-step verification
+process: discover, validate, update, verify, monitor.
+
 ## Scheduled Jobs (Cron)
 
-Jobs are the backbone of OpenClaw's autonomous behavior. Each job runs on a cron
-schedule, uses a specific model, and delivers results through a configured channel.
+Jobs are the backbone of OpenClaw's autonomous behavior. Each runs on a cron schedule,
+uses a specific model tier, and delivers results through a configured channel.
 
 ### Adding a Job
 
@@ -111,42 +122,37 @@ openclaw cron add \
 
 ### Model Selection by Job Type
 
-The general principle: **cheap models for checking, expensive models for thinking.**
+The principle: **cheap models for checking, expensive models for thinking.**
 
-| Job Type                         | Model                    | Rationale                                |
-| -------------------------------- | ------------------------ | ---------------------------------------- |
-| High-frequency checks (5-15 min) | Haiku                    | Fast, cheap, checking known patterns     |
-| Triage and routing (15-30 min)   | Sonnet                   | Needs judgment but not deep reasoning    |
-| Daily reports and briefings      | Opus                     | Synthesis across multiple sources        |
-| Weekly reviews                   | Opus + extended thinking | Deep analysis, strategic recommendations |
+| Job Type                          | Tier           | Examples                                              |
+| --------------------------------- | -------------- | ----------------------------------------------------- |
+| High-frequency polling (5-30 min) | haiku          | Inbox triage, health checks, message stewards         |
+| Daily reports and briefings       | sonnet         | Intelligence briefings, weekly reviews, update checks |
+| Deep synthesis (daily/weekly)     | opus           | Nightly reflection, security sentinel                 |
+| Unfiltered takes                  | grok           | EOD briefings with edgy commentary                    |
+| Offline/local tasks               | llama-maverick | Sleep routines, wind-down                             |
 
 ### Delivery Modes
 
-- **announce** — Posts output to the configured channel (daily briefings, reports)
-- **in-prompt** — Silent on success, alerts on failure (health checks, triage)
-- **none** — Internal processing only (nightly reflection, learning loops)
+How job output reaches the user:
 
-### Example Job Schedule
-
-| Job                  | Schedule            | Model  | Delivery  |
-| -------------------- | ------------------- | ------ | --------- |
-| morning-briefing     | 8am daily           | haiku  | announce  |
-| daily-report         | 7am daily           | sonnet | announce  |
-| inbox-triage         | every 30m, 7am-10pm | haiku  | in-prompt |
-| health-check         | every 30m           | haiku  | in-prompt |
-| cron-healthcheck     | :05 past hour       | haiku  | in-prompt |
-| nightly-reflection   | 11pm daily          | opus   | none      |
-| weekly-security-scan | Mon 4am             | opus   | none      |
+- **announce** — Posts to the configured channel after completion (daily briefings,
+  reports)
+- **in-prompt** — Silent on success, alerts only on failure or findings (health checks,
+  inbox triage)
+- **none** — Internal processing only, no user-facing output (reflection, memory
+  maintenance)
 
 ### The Cron Fleet Manifest
 
-All jobs are documented in a single source of truth: `devops/cron-fleet-manifest.md`.
-This is the canonical registry — if a job isn't listed there, it shouldn't be running.
+All jobs are documented in a single source of truth: `devops/cron-fleet-manifest.md`. If
+a job isn't listed there, it shouldn't be running. Each entry specifies the job name,
+schedule, model tier, output topic, and delivery method.
 
 ## Workflows (Autonomous Agents)
 
-Workflows are persistent autonomous agents triggered by cron jobs. Each workflow
-maintains its own state and learns over time:
+Workflows are persistent agents triggered by cron jobs. Each maintains its own state and
+learns over time:
 
 ```
 workflows/<name>/
@@ -156,45 +162,25 @@ workflows/<name>/
 └── logs/           # Execution history
 ```
 
-Key workflows:
-
-| Workflow          | Schedule      | Purpose                                 |
-| ----------------- | ------------- | --------------------------------------- |
-| email-steward     | every 30m     | Inbox triage and routing                |
-| task-steward      | hourly        | Task management and follow-up           |
-| calendar-steward  | 8am daily     | Daily schedule prep                     |
-| contact-steward   | 7am daily     | Contact discovery                       |
-| security-sentinel | Mon 4am       | Threat research                         |
-| cron-healthcheck  | :05 past hour | Monitor other cron jobs                 |
-| learning-loop     | 3am nightly   | Memory maintenance and self-improvement |
-
-The key design principle: `AGENT.md` gets updated when you update OpenClaw, but
-`rules.md` and `agent_notes.md` belong to the running instance and are never
-overwritten. This lets workflows improve over time without losing learned behavior.
+The key design: `AGENT.md` updates when you update OpenClaw, but `rules.md` and
+`agent_notes.md` belong to the running instance. Workflows genuinely improve over time
+without losing learned behavior on update.
 
 ## Health Monitoring
 
-The health check system runs every 30 minutes and monitors:
-
-- Gateway liveness and API connectivity
-- Model catalog health (can models actually respond?)
-- Cron job status (are jobs running on schedule?)
-- Channel connectivity (can messages be delivered?)
-- System resources (disk, memory)
-- Log health (error patterns, anomalies)
+The health check system runs every 30 minutes (haiku tier) and monitors gateway
+liveness, model catalog health, cron job status, channel connectivity, and system
+resources.
 
 It follows a **silent success model** — zero output when healthy, alerts only on
-failure. The cron-healthcheck workflow monitors the health check itself (quis custodiet
-ipsos custodes).
+failure. The `cron-healthcheck` workflow monitors the health check itself.
 
 ## Key Principles
 
-1. **Discovery over memory** — Always verify model IDs against the live catalog. Never
-   hardcode from memory.
-2. **Silent success** — Jobs produce zero output when healthy. Only alert on failure.
-3. **Cheap for checking, expensive for thinking** — Match model cost to task complexity.
-4. **Prose over config** — Instructions in markdown, not JSON. Agents read markdown
-   natively.
-5. **State in files** — All workflow state lives in markdown files, versioned in git.
-6. **Graceful degradation** — Fallback chains ensure service continuity when a provider
-   is down.
+1. **Discovery over memory** — Always verify model IDs against the live catalog
+2. **Aliases over IDs** — User-facing config uses tier aliases, not full model IDs
+3. **Cheap for checking, expensive for thinking** — Match tier to task complexity
+4. **Silent success** — Jobs produce zero output when healthy
+5. **Graceful degradation** — Fallback chains keep things running when a provider is
+   down
+6. **State in markdown** — All workflow state lives in files, not databases
