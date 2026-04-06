@@ -119,6 +119,10 @@ cmd_sync() {
     if $only_skills || $only_templates || $only_workflows; then
         sync_all=false
     fi
+    # If all three partial flags are set, it's functionally a full sync
+    if $only_skills && $only_templates && $only_workflows; then
+        sync_all=true
+    fi
 
     # Sync templates
     if $sync_all || $only_templates; then
