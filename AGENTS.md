@@ -48,12 +48,15 @@ handles installation and updates:
 
 - `templates/` → copied to instance workspace on install/update
 - `skills/` → copied to instance workspace (safe to overwrite)
-- `workflows/` → only `AGENT.md` updates; `rules.md`, `agent_notes.md`, `logs/` are
-  user-owned and never overwritten
+- `workflows/` → all upstream-owned files are synced (AGENT.md, classifier.md, platform
+  guides, etc.); user-owned files (`rules.md`, `agent_notes.md`, `preferences.md`,
+  `processed.md`, `logs/`) are never overwritten
 - `devops/` → health check and machine setup specs, deployed via cron on fleet machines
 
-This matters: skills and templates can be freely edited here, but workflow files besides
-`AGENT.md` belong to the running instance and must not be clobbered on update.
+This matters: skills and templates can be freely edited here. Workflow directories
+contain a mix of upstream-owned files (algorithms, classifiers, platform guides) and
+user-owned files (rules, notes, logs). The deploy logic syncs all upstream files while
+preserving user state.
 
 ## Naming History
 

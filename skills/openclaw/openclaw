@@ -4,7 +4,10 @@
 OPENCLAW_CACHE="${HOME}/.openclaw"
 OPENCLAW_REPO="${OPENCLAW_CACHE}/repo"
 OPENCLAW_DIR="${OPENCLAW_DIR:-$HOME/openclaw}"
-SCRIPTS_DIR="${OPENCLAW_REPO}/scripts"
+
+# User-owned workflow files that must never be overwritten during sync
+USER_OWNED_FILES="rules.md agent_notes.md preferences.md processed.md"
+USER_OWNED_DIRS="logs"
 
 usage() {
     cat <<EOF
@@ -24,6 +27,7 @@ Options (for sync):
   --dry-run            Show what would change
   --skills             Only sync skills
   --templates          Only sync templates
+  --workflows          Only sync workflows
 
 Examples:
   openclaw version
@@ -55,12 +59,128 @@ cmd_version() {
 
 cmd_status() {
     check_installed
-    bash "$SCRIPTS_DIR/version-check.sh"
+    local installed="unknown"
+    if [ -f "$OPENCLAW_CACHE/installed-version" ]; then
+        installed=$(cat "$OPENCLAW_CACHE/installed-version")
+    fi
+    local remote="unknown"
+    if [ -f "$OPENCLAW_REPO/VERSION" ]; then
+        remote=$(cat "$OPENCLAW_REPO/VERSION")
+    fi
+    echo "Installed: $installed"
+    echo "Available: $remote"
+    if [ "$installed" = "$remote" ]; then
+        echo "✓ Up to date"
+    else
+        echo "⬆ Update available — run: openclaw sync"
+    fi
+}
+
+is_user_owned() {
+    local file="$1"
+    local base=$(basename "$file")
+    for uf in $USER_OWNED_FILES; do
+        [ "$base" = "$uf" ] && return 0
+    done
+    for ud in $USER_OWNED_DIRS; do
+        # Match paths starting with the dir (logs/foo.md) or containing it (/logs/)
+        case "$file" in
+            "$ud/"*|*"/$ud/"*) return 0 ;;
+        esac
+        [ "$base" = "$ud" ] && return 0
+    done
+    return 1
 }
 
 cmd_sync() {
     check_installed
-    bash "$SCRIPTS_DIR/sync.sh" "$@"
+
+    local force=false dry_run=false only_skills=false only_templates=false only_workflows=false
+    for arg in "$@"; do
+        case "$arg" in
+            --force) force=true ;;
+            --dry-run) dry_run=true ;;
+            --skills) only_skills=true ;;
+            --templates) only_templates=true ;;
+            --workflows) only_workflows=true ;;
+        esac
+    done
+
+    local changed=0
+
+    # Positive filter: if no filter flags, sync everything; otherwise only the flagged sections
+    local sync_all=true
+    if $only_skills || $only_templates || $only_workflows; then
+        sync_all=false
+    fi
+
+    # Sync templates
+    if $sync_all || $only_templates; then
+        for file in AGENTS.md HEARTBEAT.md; do
+            if [ -f "$OPENCLAW_REPO/templates/$file" ]; then
+                if [ ! -f "$OPENCLAW_DIR/$file" ] || $force; then
+                    if $dry_run; then
+                        echo "[dry-run] Would sync template: $file"
+                    else
+                        cp "$OPENCLAW_REPO/templates/$file" "$OPENCLAW_DIR/$file"
+                        echo "✓ Synced template: $file"
+                    fi
+                    changed=$((changed + 1))
+                else
+                    echo "⚠ Skipping $file (may be customized, use --force to overwrite)"
+                fi
+            fi
+        done
+    fi
+
+    # Sync skills
+    if $sync_all || $only_skills; then
+        for skill_dir in "$OPENCLAW_REPO/skills/"*/; do
+            local skill=$(basename "$skill_dir")
+            if [ -d "$OPENCLAW_DIR/skills/$skill" ]; then
+                if $dry_run; then
+                    echo "[dry-run] Would sync skill: $skill"
+                else
+                    cp -r "$skill_dir"* "$OPENCLAW_DIR/skills/$skill/"
+                    chmod +x "$OPENCLAW_DIR/skills/$skill/$skill" 2>/dev/null || true
+                    echo "✓ Synced skill: $skill"
+                fi
+                changed=$((changed + 1))
+            fi
+        done
+    fi
+
+    # Sync workflows (upstream-owned files only)
+    if $sync_all || $only_workflows; then
+        for wf_dir in "$OPENCLAW_REPO/workflows/"*/; do
+            local wf=$(basename "$wf_dir")
+            if [ -d "$OPENCLAW_DIR/workflows/$wf" ]; then
+                # Find all files in the upstream workflow directory
+                while IFS= read -r rel_path; do
+                    if ! is_user_owned "$rel_path"; then
+                        local dest="$OPENCLAW_DIR/workflows/$wf/$rel_path"
+                        if $dry_run; then
+                            echo "[dry-run] Would sync workflow file: workflows/$wf/$rel_path"
+                        else
+                            mkdir -p "$(dirname "$dest")"
+                            cp "$wf_dir$rel_path" "$dest"
+                            echo "✓ Synced workflow file: workflows/$wf/$rel_path"
+                        fi
+                        changed=$((changed + 1))
+                    fi
+                done < <(cd "$wf_dir" && find . -type f | sed 's|^\./||')
+            fi
+        done
+    fi
+
+    if [ $changed -eq 0 ]; then
+        echo "✓ Everything up to date"
+    fi
+
+    # Update installed version
+    if ! $dry_run && [ -f "$OPENCLAW_REPO/VERSION" ]; then
+        cp "$OPENCLAW_REPO/VERSION" "$OPENCLAW_CACHE/installed-version"
+    fi
 }
 
 cmd_diff() {
@@ -69,6 +189,8 @@ cmd_diff() {
     echo "📄 Differences between your files and upstream:"
     echo ""
 
+    local found_diff=false
+
     # Templates
     for file in AGENTS.md HEARTBEAT.md; do
         if [ -f "$OPENCLAW_DIR/$file" ] && [ -f "$OPENCLAW_REPO/templates/$file" ]; then
@@ -76,35 +198,58 @@ cmd_diff() {
                 echo "--- $file ---"
                 diff -u "$OPENCLAW_DIR/$file" "$OPENCLAW_REPO/templates/$file" | head -50
                 echo ""
+                found_diff=true
             fi
         fi
     done
 
-    # Memory
-    for file in TASK-SYSTEM.md; do
-        if [ -f "$OPENCLAW_DIR/memory/$file" ] && [ -f "$OPENCLAW_REPO/memory/$file" ]; then
-            if ! diff -q "$OPENCLAW_DIR/memory/$file" "$OPENCLAW_REPO/memory/$file" > /dev/null 2>&1; then
-                echo "--- memory/$file ---"
-                diff -u "$OPENCLAW_DIR/memory/$file" "$OPENCLAW_REPO/memory/$file" | head -50
-                echo ""
-            fi
-        fi
-    done
-
-    # Skills
-    for skill in limitless fireflies quo; do
-        for ext in SKILL.md "$skill"; do
-            local_file="$OPENCLAW_DIR/skills/$skill/$ext"
-            remote_file="$OPENCLAW_REPO/skills/$skill/$ext"
-            if [ -f "$local_file" ] && [ -f "$remote_file" ]; then
-                if ! diff -q "$local_file" "$remote_file" > /dev/null 2>&1; then
-                    echo "--- skills/$skill/$ext ---"
-                    diff -u "$local_file" "$remote_file" | head -30
-                    echo ""
+    # Skills (all installed skills, not hardcoded list)
+    for skill_dir in "$OPENCLAW_REPO/skills/"*/; do
+        local skill=$(basename "$skill_dir")
+        if [ -d "$OPENCLAW_DIR/skills/$skill" ]; then
+            for remote_file in "$skill_dir"*; do
+                local base=$(basename "$remote_file")
+                local local_file="$OPENCLAW_DIR/skills/$skill/$base"
+                if [ -f "$local_file" ] && [ -f "$remote_file" ]; then
+                    if ! diff -q "$local_file" "$remote_file" > /dev/null 2>&1; then
+                        echo "--- skills/$skill/$base ---"
+                        diff -u "$local_file" "$remote_file" | head -30
+                        echo ""
+                        found_diff=true
+                    fi
                 fi
-            fi
-        done
+            done
+        fi
     done
+
+    # Workflows (upstream-owned files only)
+    for wf_dir in "$OPENCLAW_REPO/workflows/"*/; do
+        local wf=$(basename "$wf_dir")
+        if [ -d "$OPENCLAW_DIR/workflows/$wf" ]; then
+            while IFS= read -r rel_path; do
+                if ! is_user_owned "$rel_path"; then
+                    local local_file="$OPENCLAW_DIR/workflows/$wf/$rel_path"
+                    local remote_file="$wf_dir$rel_path"
+                    if [ -f "$local_file" ]; then
+                        if ! diff -q "$local_file" "$remote_file" > /dev/null 2>&1; then
+                            echo "--- workflows/$wf/$rel_path ---"
+                            diff -u "$local_file" "$remote_file" | head -30
+                            echo ""
+                            found_diff=true
+                        fi
+                    else
+                        echo "--- workflows/$wf/$rel_path (new upstream file) ---"
+                        echo ""
+                        found_diff=true
+                    fi
+                fi
+            done < <(cd "$wf_dir" && find . -type f | sed 's|^\./||')
+        fi
+    done
+
+    if ! $found_diff; then
+        echo "✓ No differences found"
+    fi
 }
 
 cmd_add_skill() {
@@ -153,11 +298,21 @@ cmd_upgrade() {
     if [ -d "$OPENCLAW_DIR/memory" ]; then
         cp -r "$OPENCLAW_DIR/memory" "$BACKUP_DIR/"
     fi
+    if [ -d "$OPENCLAW_DIR/workflows" ]; then
+        cp -r "$OPENCLAW_DIR/workflows" "$BACKUP_DIR/"
+    fi
     echo "✓ Backup created: $BACKUP_DIR"
     echo ""
 
+    # Pull latest from upstream
+    echo "📥 Pulling latest..."
+    (cd "$OPENCLAW_REPO" && git pull --ff-only 2>&1) || {
+        echo "❌ Failed to pull upstream. Check ~/.openclaw/repo for conflicts."
+        exit 1
+    }
+
     # Force sync
-    bash "$SCRIPTS_DIR/sync.sh" --force
+    cmd_sync --force
 
     echo ""
     echo "✓ Upgrade complete!"

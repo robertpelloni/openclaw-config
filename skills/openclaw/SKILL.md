@@ -1,6 +1,6 @@
 ---
 name: openclaw
-version: 0.2.2
+version: 0.3.0
 description: Install, configure, and update openclaw-config
 triggers:
   - openclaw
@@ -39,14 +39,16 @@ Do these steps in order:
 
 4. **Copy skills** to `skills/`
 
-5. **Optional: Add workflows** — Ask if they want any workflows:
-   - "Do you want the email steward workflow?" → Manages inbox automatically
+5. **Optional: Add workflows** — Ask if they want any workflows. List available
+   workflows from `~/.openclaw-config/workflows/`.
 
-   If yes:
-   - Copy `AGENT.md` from `~/.openclaw-config/workflows/email-steward/` to
-     `workflows/email-steward/`
-   - Create `workflows/email-steward/logs/` directory
-   - The workflow will interview them on first run to create `rules.md`
+   If yes for a workflow:
+   - Copy all upstream-owned files from `~/.openclaw-config/workflows/<name>/` to
+     `workflows/<name>/`, preserving directory structure (e.g., `platforms/` subdirs)
+   - **Never copy user-owned files:** `rules.md`, `agent_notes.md`, `preferences.md`,
+     `processed.md`, `logs/`
+   - Create `workflows/<name>/logs/` directory
+   - The workflow will interview them on first run to create user-owned files
 
 6. **Configure memory search** — Required for semantic search to work. Ask: LM Studio
    (local, free, recommended) or OpenAI?
@@ -111,8 +113,9 @@ modified them, update version file, report changes.
 
 If user wants to force/overwrite: backup to `.openclaw/backup/` first.
 
-**Workflows:** Only update AGENT.md (the algorithm). Never touch rules.md,
-agent_notes.md, or logs/ — those belong to the user.
+**Workflows:** Update all upstream-owned files (AGENT.md, classifier.md, platform
+guides, etc.), preserving directory structure. Never touch user-owned files: `rules.md`,
+`agent_notes.md`, `preferences.md`, `processed.md`, `logs/` — those belong to the user.
 
 ---
 
