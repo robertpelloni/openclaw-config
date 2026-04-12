@@ -302,80 +302,84 @@ async def scan(  # noqa: PLR0915
     results: dict[str, Any] = {}
 
     client = await _make_client(tgcli_cfg, session)
-    if not await client.is_user_authorized():
-        raise RuntimeError("Telegram client session is not authorized")
-    entity_lookup = await _entity_map(client)
-    operator_entity = entity_lookup.get(bot_id)
-    for topic in rules.get("fleet", {}).get("topics", []):
-        key = f"{topic['chat_id']}:{topic['topic_id']}"
-        scope = topic.get("scope", "fleet")
-        if scope in {"skip", "output-only"}:
-            results[key] = {
-                "skipped": True,
-                "thread_name": topic["name"],
-                "scope": scope,
-            }
-            continue
-        if not operator_entity:
-            results[key] = {
-                "error": "operator bot entity not found",
-                "thread_name": topic["name"],
-                "scope": scope,
-            }
-            continue
-        info = await _topic_latest(
-            client,
-            operator_entity,
-            int(topic["topic_id"]),
-            human_id,
-            bot_id,
-            "assistant",
-        )
-        if info:
-            info["thread_name"] = topic["name"]
-            info["scope"] = scope
-            results[key] = info
-        else:
-            results[key] = {
-                "msg_id": None,
-                "thread_name": topic["name"],
-                "scope": scope,
-            }
-    await client.disconnect()
-
-    for bot in rules.get("fleet", {}).get("bots", []):
-        peer_id = int(bot["peer_id"])
-        client = await _make_client(tgcli_cfg, session)
+    try:
+        if not await client.is_user_authorized():
+            raise RuntimeError("Telegram client session is not authorized")
         entity_lookup = await _entity_map(client)
-        entity = entity_lookup.get(peer_id)
-        for subtopic in bot.get("subtopics", []) or []:
-            key = f"{peer_id}:{subtopic['topic_id']}"
-            if not entity:
+        operator_entity = entity_lookup.get(bot_id)
+        for topic in rules.get("fleet", {}).get("topics", []):
+            key = f"{topic['chat_id']}:{topic['topic_id']}"
+            scope = topic.get("scope", "fleet")
+            if scope in {"skip", "output-only"}:
                 results[key] = {
-                    "error": "bot entity not found",
-                    "thread_name": f"{bot['name']}/{subtopic['name']}",
-                    "scope": bot.get("scope", "fleet"),
+                    "skipped": True,
+                    "thread_name": topic["name"],
+                    "scope": scope,
+                }
+                continue
+            if not operator_entity:
+                results[key] = {
+                    "error": "operator bot entity not found",
+                    "thread_name": topic["name"],
+                    "scope": scope,
                 }
                 continue
             info = await _topic_latest(
                 client,
-                entity,
-                int(subtopic["topic_id"]),
+                operator_entity,
+                int(topic["topic_id"]),
                 human_id,
                 bot_id,
-                bot["name"],
+                "assistant",
             )
             if info:
-                info["thread_name"] = f"{bot['name']}/{subtopic['name']}"
-                info["scope"] = bot.get("scope", "fleet")
+                info["thread_name"] = topic["name"]
+                info["scope"] = scope
                 results[key] = info
             else:
                 results[key] = {
                     "msg_id": None,
-                    "thread_name": f"{bot['name']}/{subtopic['name']}",
-                    "scope": bot.get("scope", "fleet"),
+                    "thread_name": topic["name"],
+                    "scope": scope,
                 }
+    finally:
         await client.disconnect()
+
+    for bot in rules.get("fleet", {}).get("bots", []):
+        peer_id = int(bot["peer_id"])
+        client = await _make_client(tgcli_cfg, session)
+        try:
+            entity_lookup = await _entity_map(client)
+            entity = entity_lookup.get(peer_id)
+            for subtopic in bot.get("subtopics", []) or []:
+                key = f"{peer_id}:{subtopic['topic_id']}"
+                if not entity:
+                    results[key] = {
+                        "error": "bot entity not found",
+                        "thread_name": f"{bot['name']}/{subtopic['name']}",
+                        "scope": bot.get("scope", "fleet"),
+                    }
+                    continue
+                info = await _topic_latest(
+                    client,
+                    entity,
+                    int(subtopic["topic_id"]),
+                    human_id,
+                    bot_id,
+                    bot["name"],
+                )
+                if info:
+                    info["thread_name"] = f"{bot['name']}/{subtopic['name']}"
+                    info["scope"] = bot.get("scope", "fleet")
+                    results[key] = info
+                else:
+                    results[key] = {
+                        "msg_id": None,
+                        "thread_name": f"{bot['name']}/{subtopic['name']}",
+                        "scope": bot.get("scope", "fleet"),
+                    }
+        finally:
+            await client.disconnect()
 
         general = tgcli_latest(peer_id)
         general_key = str(peer_id)
