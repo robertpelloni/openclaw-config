@@ -8,8 +8,7 @@ OpenClaw functionality to Claude Code.
 **Context:** Anthropic discontinued the Max subscription that provided unlimited API
 access for OpenClaw. With per-token pricing now the only option, the question is whether
 Claude Code (included with Pro subscription) can absorb some or all of OpenClaw's
-workload — both for Nick's personal instance (Cora) and for fleet users (Ali, Gil,
-Julianna, Thomas).
+workload — both for the admin's primary instance and for fleet users.
 
 ---
 
@@ -254,7 +253,7 @@ outages happen regularly. Without fallback chains, you'll see more failures.
 ### Persistent Memory with Semantic Search
 
 OpenClaw's memory system includes vector search via embeddings (LM Studio locally,
-OpenAI fallback). This enables semantic recall: "What did Nick say about the auth
+OpenAI fallback). This enables semantic recall: "What did the user say about the auth
 migration?" finds relevant memories even without exact keyword matches.
 
 Claude Code's memory is file-based with no semantic search. You can grep for keywords,
@@ -332,21 +331,21 @@ Significant capability regression for fleet users
 
 ## Fleet Implications
 
-The migration calculus is different for Nick vs fleet users:
+The migration calculus is different for the admin vs fleet users:
 
-### For Nick (Cora)
+### For the Admin (Primary Instance)
 
-Nick is a developer who's already running Claude Code. The integration is natural:
+The admin is a developer who's already running Claude Code. The integration is natural:
 
-- He's at the keyboard most of the day (channels work during sessions)
+- At the keyboard most of the day (channels work during sessions)
 - Fleet management already runs from Claude Code
-- His skills and workflows can be invoked directly
-- CLAUDE.md already has his personality and preferences
+- Skills and workflows can be invoked directly
+- CLAUDE.md already has personality and preferences
 
-**What he loses:** Always-on WhatsApp/iMessage when AFK, background cron jobs running
+**What they lose:** Always-on WhatsApp/iMessage when AFK, background cron jobs running
 while sleeping, auto-remediation of issues overnight.
 
-### For Fleet Users (Ali, Gil, Julianna, Thomas)
+### For Fleet Users
 
 Fleet users are NOT developers. They interact with their AI via messaging channels. They
 don't open terminals. They don't run Claude Code.
@@ -374,7 +373,7 @@ Or migrate them to Claude's Slack integration if they use Slack.
 ### Current Model (OpenClaw + API)
 
 - Per-token API pricing for all gateway usage
-- Nick's fleet: ~6 machines, each running scheduled jobs + handling messages
+- Example fleet: ~6 machines, each running scheduled jobs + handling messages
 - No subscription fees for the gateway itself (open source)
 - Cost is proportional to usage (busy instances cost more)
 

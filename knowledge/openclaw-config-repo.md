@@ -28,7 +28,7 @@ specifics. Generic placeholders in all examples.
 ```
 openclaw-config/
 ├── skills/              17 standalone tools (Python UV scripts + bash wrappers)
-├── workflows/           10 autonomous agents with state and learning
+├── workflows/            9 autonomous agents with state and learning
 ├── templates/            8 identity and deployment templates
 ├── devops/               Health check, machine setup, security review, notifications
 ├── knowledge/            Operational documentation and architecture guides
@@ -97,7 +97,7 @@ directory). No shared code, no project-level dependencies.
 
 ---
 
-## Workflows (10)
+## Workflows (9)
 
 Autonomous agents that run on schedules, maintain state, and learn from corrections.
 
@@ -112,7 +112,6 @@ Autonomous agents that run on schedules, maintain state, and learn from correcti
 | cron-healthcheck  | Detect broken cron jobs, auto-remediate common issues. Two-tier model (triage + diagnosis). | AGENT.md, agent_notes.md                 |
 | learning-loop     | Capture corrections → detect patterns → validate → promote to memory.                       | AGENT.md, agent_notes.md, rules.md       |
 | llm-usage-report  | Daily LLM spend breakdown by session and model. Empathy pass for tone.                      | AGENT.md, agent_notes.md, logs/          |
-| daily-report      | Previous day's cost and activity summary.                                                   | AGENT.md, agent_notes.md, logs/          |
 | security-sentinel | Research AI security threats, map to OpenClaw architecture, verify fleet exposure via SSH.  | AGENT.md, agent_notes.md                 |
 | mailroom-steward  | Advanced email routing (not yet implemented — directory exists with logs/ only).            | —                                        |
 
@@ -257,7 +256,7 @@ uv run --with pytest pytest tests/ -v
 ### Test Coverage
 
 **Workflow structure tests:** Validate AGENT.md frontmatter and required sections for
-daily-report, llm-usage-report, fleet-spend-digest workflows.
+llm-usage-report workflow.
 
 **Skill integration tests:** agentmail, fireflies, fathom, limitless, parallel, quo,
 followupboss — all auto-skip without respective API keys.
@@ -272,7 +271,7 @@ correctly.
 This repo is the **shareable brain** for OpenClaw instances:
 
 1. **17 integration skills** — API wrappers for communication, knowledge, productivity
-2. **10 autonomous workflows** — scheduled agents that learn and maintain state
+2. **9 autonomous workflows** — scheduled agents that learn and maintain state
 3. **8 identity templates** — personality, preferences, startup routines
 4. **DevOps specs** — health monitoring, machine setup, security hardening
 5. **Fleet commands** — multi-machine management from Claude Code
@@ -281,7 +280,7 @@ This repo is the **shareable brain** for OpenClaw instances:
 
 **What it does NOT contain:**
 
-- The OpenClaw gateway source code (that's in `moltbot/moltbot` on GitHub)
+- The OpenClaw gateway source code (separate private repository)
 - Fleet-specific data (that's in `~/openclaw-fleet/`, private)
 - Instance-specific configuration (that's in `~/.openclaw/`, per-machine)
 - API keys or credentials (all referenced via environment variables)
