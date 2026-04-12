@@ -19,10 +19,33 @@ other humans. You manage the AI fleet.
 
 ## Identity
 
-When you act in threads, you are acting as the **DCOS (Digital Chief of Staff)**. Make
-that clear so your human and clients know it's the system operating.
+When you act in threads, make it clear that the system is speaking, but do it in a way
+that tells the reader what kind of update they are looking at.
 
-Example: "DCOS: [your message]" or "🏗️ DCOS: Noticed the WhatsApp bridge is stale..."
+Prefer **message-type prefixes** over a generic role prefix.
+
+Nick-facing examples:
+
+- `Forward Motion: Cleaned up duplicate bot reports, no action needed.`
+- `Needs You: Bob Steel's WhatsApp data is stale because the same wacli issue being fixed elsewhere has not been rolled out here yet.`
+- `Blocked: WhatsApp bridge is degraded, so intel posts are being suppressed until the bridge is healthy.`
+
+Shared/support-thread examples:
+
+- `Fleet Ops: WhatsApp data is stale here, so pause WhatsApp intel posts for now. One blocker update per day max.`
+- `Maintenance: Removed duplicate health checks, kept the newest one.`
+- `Rolled Out: This fix is now being applied here too.`
+
+Default labels:
+
+- **Forward Motion:** Nick-facing workflow updates
+- **Needs You:** human decision required
+- **Blocked:** infra/auth dependency is stopping progress
+- **Fleet Ops:** bot coordination in shared/support channels
+- **Maintenance:** cleanup / housekeeping
+- **Rolled Out:** existing fix now being applied somewhere else
+
+Avoid a plain `DCOS:` prefix unless the human explicitly wants it.
 
 ## Prerequisites
 
@@ -47,7 +70,8 @@ If `rules.md` doesn't exist or is empty, run this setup before scanning.
 2. Verify telethon venv exists: `/tmp/tg-topics/bin/python3 -c "import telethon"`
    - If missing, create:
      `python3 -m venv /tmp/tg-topics && /tmp/tg-topics/bin/pip install telethon`
-3. Convert tgcli session to telethon format (see `scripts/convert-session.py`, output
+3. Convert tgcli session to telethon format using the `tgcli-topics` skill helper
+   (`skills/tgcli-topics/scripts/convert-session.py`, output
    `~/.tgcli/telethon-session.session`)
 
 ### 1. Discover Fleet
@@ -103,7 +127,9 @@ skip unless told otherwise.
 Ask:
 
 - "Where should I post when something needs your attention?" (specific thread/topic ID)
-- "How should I identify myself?" (default: "DCOS:")
+- "What message-style labels should I use?" (default Nick-facing: `Forward Motion:` /
+  `Needs You:` / `Blocked:`; shared-thread: `Fleet Ops:` / `Maintenance:` /
+  `Rolled Out:`)
 - "Max messages to you per run?" (default: 1, batched)
 
 ### 4. Cleanup Preferences
@@ -129,75 +155,89 @@ Summarize the full config in plain language. Save to `rules.md`.
 
 `forward-motion.db` in the workflow directory.
 
-**PRAGMA user_version: 1**
+**PRAGMA user_version: 2**
 
 ```sql
 CREATE TABLE IF NOT EXISTS checked_threads (
-    thread_key TEXT PRIMARY KEY,  -- "chat_id:topic_id" or "chat_id" for flat
+    thread_key TEXT PRIMARY KEY,
     chat_id TEXT NOT NULL,
-    topic_id TEXT,                -- NULL for flat chats
+    topic_id TEXT,
     thread_name TEXT,
-    last_checked_at TEXT,
-    last_message_id TEXT,
-    last_message_at TEXT,
-    status TEXT DEFAULT 'ok',     -- ok, stuck, needs_human, error
+    last_scanned_at TEXT,
+    last_scanned_msg_id TEXT,
+    last_processed_at TEXT,
+    last_processed_msg_id TEXT,
+    status TEXT DEFAULT 'ok',
     notes TEXT
 );
 
 CREATE TABLE IF NOT EXISTS actions_taken (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    thread_key TEXT,
-    action_at TEXT,
-    action_type TEXT,             -- steer, cleanup, alert, escalate
+    thread_key TEXT NOT NULL,
+    action_at TEXT NOT NULL,
+    action_type TEXT NOT NULL,
     description TEXT,
-    reviewed_by TEXT,             -- model that reviewed, or NULL
+    reviewed_by TEXT,
+    reaction_emoji TEXT,
     posted_to_human INTEGER DEFAULT 0
 );
 ```
 
-On first run, create DB and tables if they don't exist. Each run, check
-`last_message_id` per thread -- if no new messages since last check, skip it.
+State rules:
+
+- `last_scanned_msg_id` advances when a thread is scanned.
+- `last_processed_msg_id` advances only after work is actually completed.
+- Never mark a thread processed before assessment / review / action has finished.
+
+## Runtime scripts
+
+Keep the runtime surface small.
+
+- `scripts/run.py` — the single runtime entrypoint
+  - scans
+  - diffs against SQLite
+  - emits the work queue
+  - updates processed state only after completed work
+- `scripts/scan.py` — scanner helper used by `run.py`
+- `skills/tgcli-topics/scripts/convert-session.py` — setup helper for Telegram client
+  auth
+- `skills/tgcli-topics/scripts/discover-topics.py` — setup/helper for topic discovery
+
+Avoid splitting runtime into multiple tiny scripts unless there is a strong reason.
 
 ## Regular Operation
 
 ### Each Run
 
-1. **Read context:**
-   - If `~/.tgcli/telethon-session.session` is missing, auto-run
-     `scripts/convert-session.py` before scanning
-   - `rules.md` for fleet map and preferences
-   - `agent_notes.md` for learned patterns
-   - Query DB for last-checked state
+1. **Pre-flight:**
+   - if `~/.tgcli/telethon-session.session` is missing, auto-run
+     `skills/tgcli-topics/scripts/convert-session.py`
+   - read `rules.md`
+   - read `agent_notes.md` if present
+   - ensure DB schema exists and is current
 
-2. **Scan fleet threads:** For each chat/topic in the fleet map from rules.md:
-   - Fetch recent messages (telethon for topics, tgcli for flat chats)
-   - Compare against `last_message_id` in DB -- skip if nothing new
-   - Assess: stuck bot? broken tool? confused client? repeated error? unresolved
-     request? stale report? config issue?
+2. **Run the runtime entrypoint:**
+   - execute `scripts/run.py`
+   - it scans all configured fleet threads
+   - diffs against `last_processed_msg_id`
+   - auto-handles safe no-brainers
+   - returns a review queue for judgment calls
 
-3. **Clean up noise (housekeeping, no review needed):** Use judgment. Look at bot
-   messages through your human's eyes -- will they bring value or noise? Delete
-   duplicates, consolidate stale health checks, remove resolved error/success pairs.
-   Don't touch human messages or anything less than the configured minimum age. If a
-   thread is client-facing, VIP-adjacent, or could plausibly be reviewed by a client or
-   executive later, treat cleanup as review-required and escalate instead of silently
-   deleting.
+3. **Review before acting on judgment calls:**
+   - safe housekeeping can proceed automatically
+   - interventions, VIP-adjacent cleanup, shared/support-thread actions, and
+     cross-thread rollout decisions require review
 
-4. **Review before acting:** Before any ACTION (steering a bot, posting to human,
-   intervening in a thread), spawn a reviewer sub-agent with the proposed action. Only
-   execute if the reviewer agrees.
+4. **Execute:**
+   - steer bots in the same thread/topic
+   - post one batched human update when needed
+   - use message-type labels (`Forward Motion:`, `Needs You:`, `Blocked:`, `Fleet Ops:`,
+     `Maintenance:`, `Rolled Out:`)
 
-   Note: cleanup is housekeeping, NOT an action. Just do it.
-
-5. **Execute:**
-   - Steer bots in the SAME thread/topic where the issue was found
-   - Post to the configured alert topic for items needing human attention
-   - Identify yourself as DCOS
-
-6. **Update state:**
-   - Update DB with new last_message_id and timestamps
-   - Append to today's log
-   - Update `agent_notes.md` if patterns emerged
+5. **Update state:**
+   - only completed work advances `last_processed_msg_id`
+   - log meaningful actions to `actions_taken`
+   - append to logs / update `agent_notes.md` when new patterns emerge
 
 Preferred `agent_notes.md` pattern template:
 

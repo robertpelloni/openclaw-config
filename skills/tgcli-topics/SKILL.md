@@ -1,0 +1,54 @@
+---
+name: tgcli-topics
+description:
+  List, discover, and search Telegram forum topics using the Telegram Client API
+  (MTProto) via Telethon. Use when you need to find topic IDs (thread IDs) for a
+  Telegram chat, especially when the standard tgcli cannot list forum topics.
+---
+
+# tgcli-topics
+
+A specialized skill to discover and list Telegram forum topics. Standard `tgcli` is
+great for flat-chat history, but it does not expose forum-topic listing. This skill
+bridges the gap by converting the `tgcli` session to a Telethon session and querying the
+MTProto Client API directly.
+
+## Prerequisites
+
+This skill requires `telethon` and a converted session.
+
+1. Ensure the user is logged into `tgcli`.
+2. Install Telethon in a virtual environment (if not already system-wide):
+   ```bash
+   python3 -m venv ~/.tgcli/venv
+   ~/.tgcli/venv/bin/pip install telethon
+   ```
+3. Convert the session to a persistent Telethon session file:
+   ```bash
+   ~/.tgcli/venv/bin/python3 scripts/convert-session.py
+   ```
+   This writes `~/.tgcli/telethon-session.session` by default.
+
+## Usage
+
+Use the discovery script to list topics for peers:
+
+```bash
+# List topics for all dialogs (Markdown format)
+~/.tgcli/venv/bin/python3 scripts/discover-topics.py --all --markdown
+
+# List topics for specific peers
+~/.tgcli/venv/bin/python3 scripts/discover-topics.py --peers 123456789,987654321
+
+# Output as JSON
+~/.tgcli/venv/bin/python3 scripts/discover-topics.py --all --json
+```
+
+## Notes
+
+- Topic discovery paginates, so chats with more than 100 topics are handled correctly.
+- `--include-flat` includes dialogs that do not have forum topics, which is useful for
+  audits.
+- For topic _message reads_ in bot DMs, use a Telethon client with
+  `receive_updates=False`. In practice, isolating each bot DM in its own client pass
+  avoids update-decoding issues while reading replies.
