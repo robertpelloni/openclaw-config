@@ -376,8 +376,7 @@ Batch your findings into a single message. Don't spam one-by-one. Format:
 
 **Updated:**
 
-- Marcus Rodriguez — added email marcus@example.com (he mentioned it in your WhatsApp
-  conversation)
+- Alex Martinez — normalized name spacing (was "Alex Martinez" with double space)
 
 **Name review needed:**
 
@@ -386,7 +385,7 @@ Batch your findings into a single message. Don't spam one-by-one. Format:
 
 **Identity conflict review needed:**
 
-- Julianna Scruggs — this thread surfaced a new phone number that is not already on her
+- <Contact Name> — this thread surfaced a new phone number that is not already on their
   saved contact. I did not attach it automatically because phone numbers are treated as
   identity anchors and need human confirmation.
 

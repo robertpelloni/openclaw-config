@@ -90,6 +90,11 @@ tell application "Contacts"
 end tell'
 ```
 
+Note: Apple Contacts may store numbers with different formatting (spaces, parentheses,
+dashes). `imsg` reports sender numbers in E.164 format (`+1XXXXXXXXXX`), but an existing
+contact entry might be stored as `+1 (555) 123-4567`. If the exact match returns empty,
+also try a digit-only comparison before concluding there is no conflict.
+
 If this returns any name other than the intended contact, treat it as `ask_human`.
 
 ### Adding Contacts to Apple Contacts
