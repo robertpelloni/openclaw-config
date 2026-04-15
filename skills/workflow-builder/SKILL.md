@@ -1,6 +1,6 @@
 ---
 name: workflow-builder
-version: 0.2.0
+version: 0.3.0
 description:
   Design, build, and maintain autonomous OpenClaw workflows (stewards). Use when
   creating new workflow agents, improving existing ones, evaluating automation
@@ -161,9 +161,20 @@ The workflow writes here as it learns. Accumulates over time.
 - <sender X always sends receipts on Fridays>
 - <task type Y usually takes 2 hours>
 
-## Mistakes Made
+## Failures & Corrections
 
-- <once archived an important email — now check for X before archiving>
+### YYYY-MM-DD: <brief description>
+
+- What happened: <what the workflow did>
+- Why it was wrong: <why it was incorrect>
+- Correct action: <what should have happened>
+- New rule: <guardrail to prevent recurrence>
+- Applied to: <where the rule was added, e.g., rules.md VIP section>
+
+## Improvement Proposals
+
+- <AGENT.md is ambiguous about X — suggest clarifying to Y>
+- <Tool Z fails silently when API is down — suggest adding health check>
 
 ## Optimizations
 
@@ -181,11 +192,79 @@ One file per day, auto-pruned after 30 days.
 
 ## Run: HH:MM
 
+### Actions
+
 - Processed: N items
 - Actions: archived X, deleted Y, alerted on Z
 - Errors: none
 - Duration: ~Ns
+
+### Scorecard
+
+| Dimension    | Stars          | Notes                         |
+| ------------ | -------------- | ----------------------------- |
+| Completeness | ⭐⭐⭐⭐ (4)   | 1 item deferred (API timeout) |
+| Accuracy     | ⭐⭐⭐⭐⭐ (5) | All classifications clear     |
+| Judgment     | ⭐⭐⭐ (3)     | Unsure about sender X         |
+| Overall      | ⭐⭐⭐⭐ (4)   |                               |
+
+Confidence: HIGH
+
+Source: self | verified (indicate whether cross-context verifier ran)
 ```
+
+### Definition of Done
+
+Every workflow must declare what "done" looks like for a single run. This is the
+contract between the workflow and whoever (human or auditor) evaluates it.
+
+**Three components:**
+
+#### Completion Criteria
+
+Concrete, checkable conditions that constitute a successful run. Not "process emails"
+but:
+
+- All unread emails in target labels have been classified
+- No email remained in an ambiguous state without escalation
+- All actions logged with item IDs
+
+These are binary pass/fail checks. If any fail, the run is incomplete.
+
+#### Output Validation
+
+Structural checks to run on the output before declaring done:
+
+- Expected output format (log entry, state update, notification sent)
+- Required fields present (item counts, action summaries, error list)
+- Side effects confirmed (database updated, labels applied, alerts delivered)
+
+These can be checked deterministically — no LLM judgment needed.
+
+#### Quality Rubric
+
+3-5 scored dimensions specific to this workflow, each on a 1-5 gold star scale:
+
+| Score      | Meaning                                                       |
+| ---------- | ------------------------------------------------------------- |
+| ⭐⭐⭐⭐⭐ | Excellent — no issues, confident in all decisions             |
+| ⭐⭐⭐⭐   | Good — minor uncertainties, all resolved reasonably           |
+| ⭐⭐⭐     | Acceptable — some judgment calls the user might disagree with |
+| ⭐⭐       | Poor — likely errors, should flag for human review            |
+| ⭐         | Failed — wrong actions taken, rollback recommended            |
+
+**Example rubric for an email steward:**
+
+| Dimension        | What it measures                                    |
+| ---------------- | --------------------------------------------------- |
+| Completeness     | Were all eligible items processed?                  |
+| Accuracy         | Were classifications/actions correct?               |
+| Judgment quality | Were edge cases handled well or properly escalated? |
+| Alert relevance  | Were alerts appropriate (not noisy, not silent)?    |
+
+The rubric goes in AGENT.md. Scores go in the run log. Over time, score trends reveal
+drift — a workflow averaging 4.5 that drops to 3.2 over a week signals something
+changed.
 
 ---
 
@@ -206,14 +285,55 @@ Every workflow should start with an interactive setup that creates `rules.md`.
 
 ### Pattern 2: Graduated Trust
 
-Start conservative, get more aggressive as confidence grows.
+Trust is earned by performance, not elapsed time. Use run scorecard scores (see
+Definition of Done) to gate autonomy levels.
 
 ```
-Week 1: Only act on obvious items (>95% confidence)
-Week 2: Expand to likely items (>85% confidence), log edge cases
-Week 3: Review agent_notes.md, adjust thresholds
-Week 4+: Stable operation with periodic self-audit
+Level 1 — Supervised:
+  Human reviews all actions before execution.
+  Advance → 20 consecutive runs at ⭐⭐⭐⭐ or above
+
+Level 2 — Monitored:
+  Acts autonomously, human reviews logs daily.
+  Advance → 50 consecutive runs at ⭐⭐⭐⭐ or above
+  Demote  → 3 runs below ⭐⭐⭐
+
+Level 3 — Autonomous:
+  Acts and logs, human reviews weekly.
+  Advance → 100 consecutive runs at ⭐⭐⭐⭐ or above
+  Demote  → 3 runs below ⭐⭐⭐ → back to Level 2
+
+Level 4 — Trusted:
+  Fully autonomous, quality auditor watches trends.
+  Demote  → quality auditor flags degradation → back to Level 3
 ```
+
+**Store trust state in `rules.md`** so the user can see and override it:
+
+```markdown
+## Trust
+
+- trust_level: 2
+- consecutive_good_runs: 14
+- cooldown_remaining: 0
+```
+
+The workflow reads these at the start of each run and updates them at the end:
+
+- **Level 1:** Present proposed actions, wait for approval before executing
+- **Level 2-4:** Execute, then log actions for review
+
+**Starting point:** New workflows default to Level 1. But for low-stakes workflows
+(health checks, notifications, reports), **the user should promote to Level 2 during
+setup** to avoid unnecessary babysitting. The setup interview should offer this choice:
+"Should I run independently and you review the logs, or would you prefer to approve each
+action first?"
+
+**Why Level 1 scores are trustworthy despite self-reporting:** At Level 1, the human
+reviews every proposed action before execution. If the workflow consistently proposes
+wrong actions that the human corrects, the human will notice — even if the self-scores
+are inflated. Human review IS the verification gate at Level 1. Cross-context
+verification activates at Level 2 to replace the human as the independent check.
 
 Write confidence thresholds to `rules.md` so the user can tune them.
 
@@ -360,6 +480,18 @@ Every workflow must handle failures gracefully:
 4. **Quarantine, don't destroy** — use labels/tags, not deletion
 5. **Route all errors to one place** — consistent error channel
 
+**Alert hierarchy** (prevents alert fatigue from multiple channels):
+
+- **Real-time alerts:** Circuit breakers only — trust level demotions, single-⭐ events.
+  These are push notifications that demand attention.
+- **Periodic reports:** Quality auditor findings — delivered on schedule (daily/weekly),
+  not pushed. The human pulls these during review.
+- **Audit-session only:** Improvement proposals in agent_notes.md — surfaced during
+  monthly audits, not pushed to the user.
+
+One urgent channel, one periodic channel, one on-demand channel. If a struggling
+workflow sends alerts from all three, something is wrong with the alert configuration.
+
 ### Pattern 6: Integration Points
 
 Workflows should declare how they connect to other workflows:
@@ -380,6 +512,195 @@ Workflows should declare how they connect to other workflows:
 
 - None (or: reads from workflows/shared/contacts.md)
 ```
+
+### Pattern 7: Cross-Context Verification
+
+LLMs have a blind spot for their own errors — research shows a 64.5% failure rate when
+asked to self-correct in the same context. The fix: review in a **fresh context** that
+never sees the worker's reasoning.
+
+**When to use:** Any workflow where output quality matters and mistakes have
+consequences. Not needed for purely informational logs or low-stakes summaries.
+
+**Pattern:**
+
+```
+After the worker completes its run:
+
+1. Orchestrator extracts ONLY the final output:
+   - Actions taken (with IDs/details)
+   - The quality rubric from Definition of Done
+   - NOT the conversation history or intermediate reasoning
+
+2. Spawn a FRESH sub-agent (the "verifier") with:
+   - The extracted output
+   - The quality rubric
+   - A verifier prompt (see template below)
+
+3. Verifier returns:
+   - Dimension scores (numeric, 1-5)
+   - Flagged issues (with severity: critical / warning / minor)
+   - Overall confidence: HIGH / MEDIUM / LOW
+```
+
+**Verifier prompt template:**
+
+```
+Score each dimension in the provided quality rubric on a 1-5 scale. For each:
+- State the score (numeric)
+- Cite specific actions/decisions that justify the score
+- Flag issues with severity: critical (wrong action taken), warning
+  (questionable judgment), or minor (suboptimal but acceptable)
+
+Scoring calibration:
+- 5 means zero issues found. Reserve for genuinely flawless work.
+- 3-4 is the honest range for most competent runs.
+- Below 3 means you found concrete errors, not just uncertainties.
+
+You are reviewing work done by another agent. You have no access to the
+agent's reasoning — only its output. If an action seems wrong, flag it.
+If you can't determine whether an action was correct from the output alone,
+flag that as a transparency issue.
+
+Return: dimension scores, flagged issues with severity, overall confidence
+(HIGH/MEDIUM/LOW).
+
+4. Orchestrator acts on the verification:
+   - All clear (no critical, overall ⭐⭐⭐⭐ or above) → proceed, log scores
+   - Warnings (overall ⭐⭐⭐) → proceed, log concerns, note in agent_notes.md
+   - Critical issues (overall ⭐⭐ or below) → roll back if possible, alert human
+```
+
+**Key principles:**
+
+- The verifier must NOT see the worker's reasoning — fresh context is the mechanism
+- Context separation matters more than model diversity — same model works fine
+- Using a different model is a bonus, not a requirement
+- Cost is modest: ~5K tokens for verification vs 50K+ for the work session
+- Budget the verification cost into the workflow's token estimate
+
+**When NOT to verify cross-context:**
+
+- High-frequency checks where speed matters more than accuracy (use self-scoring
+  instead)
+- Trivially verifiable output (e.g., "did the API call succeed?" — just check the
+  status)
+- Workflows at Level 1 (Supervised) where human is already reviewing everything
+
+### Pattern 8: Run Scorecard
+
+Every run should score itself. This creates the data trail that drives graduated trust,
+quality auditing, and self-improvement.
+
+**The scorecard goes in the daily log** (see logs/ format above). Dimensions come from
+the workflow's quality rubric in its Definition of Done.
+
+**Scoring guidelines for the workflow:**
+
+```markdown
+When scoring your run, be honest — overconfident scores are worse than conservative
+ones.
+
+- ⭐⭐⭐⭐⭐: No doubts. Every action was clearly correct.
+- ⭐⭐⭐⭐: Minor uncertainties, but all resolved with reasonable confidence.
+- ⭐⭐⭐: Some judgment calls that could go either way. The user might disagree.
+- ⭐⭐: Likely errors. Something felt wrong but you proceeded anyway.
+- ⭐: Known wrong action. Should not have been taken.
+
+Confidence reflects your certainty in the scores themselves:
+
+- HIGH: Clear-cut run, scores are reliable
+- MEDIUM: Some ambiguity, scores are best-effort
+- LOW: Significant uncertainty — flag for human review regardless of scores
+```
+
+**What to do with scores:**
+
+- **Track trends:** A single ⭐⭐⭐ run is fine. Five consecutive ⭐⭐⭐ runs means
+  something is off — the workflow should note this in agent_notes.md and alert the
+  human. (This is an informational alert, not a trust level change. Trust demotion only
+  triggers on runs scoring ⭐⭐ or below — see circuit breakers in Pattern 9.)
+- **Feed into graduated trust:** Star ratings gate autonomy level changes (see
+  Pattern 2)
+- **Enable quality auditing:** The quality auditor (see Part 4) reads these scores to
+  detect drift across workflows
+- **Drive self-improvement:** Low stars + the "Notes" column tell the self-improvement
+  loop what to focus on (see Pattern 9)
+
+### Pattern 9: Self-Improvement Loop
+
+Workflows should get better over time, not just repeat the same mistakes.
+
+**Three mechanisms:**
+
+#### Structured Failure Logging
+
+When verification catches an issue (score < 3 on any dimension, or cross-context
+verifier flags something), log it in `agent_notes.md` with enough detail to prevent
+recurrence:
+
+```markdown
+## Failures & Corrections
+
+### YYYY-MM-DD: Archived important email from sender X
+
+- What happened: Classified as promotional, archived
+- Why it was wrong: Sender X sends invoices that look like marketing
+- Correct action: Should have flagged for review
+- New rule: Always check sender X against VIP list before archiving
+- Applied to: rules.md VIP section (added sender X)
+```
+
+#### Active Guardrails from Past Mistakes
+
+The run loop should **read agent_notes.md failures before processing**, not after. Turn
+past mistakes into pre-flight checks:
+
+```
+Each Run:
+1. Read rules.md
+2. Read agent_notes.md — specifically the Failures & Corrections section
+3. Build a mental checklist of known pitfalls for this run
+4. Process items with those guardrails active
+5. Score the run
+6. If new failures found, add to agent_notes.md
+```
+
+This transforms `agent_notes.md` from a passive history into an active safety net.
+
+#### Circuit Breakers
+
+These implement the demotion rules from Pattern 2's graduated trust. The run loop checks
+these at the end of each run using the `consecutive_good_runs` and `cooldown_remaining`
+fields in `rules.md`.
+
+```
+If 3 consecutive runs below ⭐⭐⭐ overall:
+  → Demote one trust level (Level 4→3, 3→2, 2→1)
+  → Reset consecutive_good_runs to 0
+  → Alert human: "Workflow quality degraded. Demoted to Level N."
+  → Log the pattern in agent_notes.md
+
+If a single run scores ⭐ on any dimension:
+  → Immediate alert to human
+  → Roll back actions if possible
+  → Set cooldown_remaining to 10 in rules.md
+  → Reset consecutive_good_runs to 0
+  (Cooldown decrements by 1 each run. No trust level advancement while
+  cooldown_remaining > 0, even if scores recover.)
+```
+
+#### Proposing Improvements
+
+When a workflow identifies a recurring pattern it can't fix itself (e.g., the AGENT.md
+instructions are ambiguous, or a tool is unreliable), it should:
+
+1. Log the pattern in `agent_notes.md` under "## Improvement Proposals"
+2. Include: what's failing, how often, what would fix it
+3. The quality auditor or monthly audit surfaces these for the human to act on
+
+Workflows don't edit their own AGENT.md — that's upstream-owned. They propose; the human
+decides.
 
 ---
 
@@ -429,6 +750,65 @@ openclaw cron add \
 
 Note: Isolated cron jobs **default to announce delivery** (summary posted after run).
 Set `delivery: none` explicitly if you want silent operation.
+
+### Quality Auditor Jobs
+
+A quality auditor is a separate cron job whose sole purpose is reviewing other
+workflows' output quality over time. It's the "separation of concerns" approach to
+verification — the workflow verifies itself per-run, the auditor verifies the workflow
+across runs.
+
+**When to add a quality auditor:**
+
+- When a workflow handles high-stakes actions (deleting data, sending messages, managing
+  contacts)
+- When a workflow runs frequently enough that manual log review is impractical
+- When you want to catch gradual quality drift that per-run scoring misses
+
+**Quality auditor pattern:**
+
+```
+Schedule: Daily or weekly (cheap model — this is a read-and-analyze job)
+
+Each run:
+1. Read the target workflow's logs from the past N days
+2. Extract all run scorecards
+3. Check for:
+   - Score drift (average dropping over time)
+   - Recurring LOW confidence runs
+   - Repeated errors or the same failure pattern
+   - Dimension-specific degradation (e.g., accuracy stable but judgment declining)
+   - Score inflation: compare self-scores vs verifier scores across runs. A persistent
+     delta (self > verifier) signals the workflow is overrating itself.
+4. Spot-check a sample of actions (at least 3 or 10% of the period, whichever is larger)
+   against reality — this requires access to the same tools as the audited workflow:
+   - Did the email-steward archive something it shouldn't have?
+   - Did the contact-steward create a duplicate?
+   - Did the task-steward miss a deadline?
+5. Check agent_notes.md for unresolved "Improvement Proposals"
+6. Report:
+   - Quality trend summary (improving / stable / degrading)
+   - Flagged anomalies with severity
+   - Improvement suggestions
+   - Whether the workflow's trust level should change
+```
+
+**Auditor output goes to the human, not back into the workflow.** The auditor
+recommends; the human decides whether to adjust rules, update AGENT.md, or change trust
+levels.
+
+**Example cron:**
+
+```bash
+openclaw cron add \
+  --name "Email Steward QA" \
+  --cron "0 9 * * 1" \
+  --tz "YOUR_TIMEZONE" \
+  --session isolated \
+  --message "Audit email-steward quality. Read logs from the past 7 days, analyze scorecards, spot-check 3 random actions, report trends." \
+  --model work \
+  --announce
+```
 
 ---
 
@@ -490,7 +870,39 @@ If `rules.md` doesn't exist or is empty:
 
 ### 5. Confirm & Save
 
-<Summarize in plain language, save rules.md.>
+<Summarize in plain language, save rules.md. Set initial trust level to Level 1
+(Supervised) unless user requests Level 2.>
+
+## Definition of Done
+
+What constitutes a successful run of this workflow.
+
+### Completion Criteria
+
+<Binary pass/fail checks. Example:>
+
+- All eligible items in scope have been processed or explicitly deferred
+- No item left in an ambiguous state without escalation
+- All actions logged with item identifiers
+
+### Output Validation
+
+<Structural checks — no LLM judgment needed. Example:>
+
+- Log entry created with action summary and item counts
+- Database updated for all processed items
+- Alerts delivered for flagged items (if any)
+
+### Quality Rubric
+
+<3-5 scored dimensions on the ⭐ scale. Example:>
+
+| Dimension    | What it measures                                    |
+| ------------ | --------------------------------------------------- |
+| Completeness | Were all eligible items processed?                  |
+| Accuracy     | Were classifications/actions correct?               |
+| Judgment     | Were edge cases handled well or properly escalated? |
+| Alerting     | Were alerts appropriate (not noisy, not silent)?    |
 
 ## Database (only if this workflow tracks processed items)
 
@@ -508,17 +920,32 @@ state files exist.>
 
 ### Each Run
 
-1. Read `rules.md` for preferences
-2. Read `agent_notes.md` for learned patterns (if exists)
+**Preparation:**
+
+1. Read `rules.md` for preferences, trust level, and trust counters
+2. Read `agent_notes.md` — specifically Failures & Corrections as pre-flight guardrails
 3. Ensure database is ready (see Database section — one quick version check)
-4. <Scan/fetch new items>
-5. Query `processed.db` to filter items already handled
-6. FOR EACH new item: Spawn a sub-agent to process it (see Sub-Agent Orchestration)
-7. After each item, update `processed.db` with status
-8. Collect sub-agent results
-9. Alert if anything needs attention
-10. Append to today's log in `logs/`
-11. Update `agent_notes.md` if you learned something new about patterns/mistakes
+
+**Processing:** 4. <Scan/fetch new items> 5. Query `processed.db` to filter items
+already handled 6. FOR EACH new item: Spawn a sub-agent to process it (see Sub-Agent
+Orchestration) 7. After each item, update `processed.db` with status 8. Collect
+sub-agent results 9. Alert if anything needs attention
+
+**Quality Gate:** 10. Append actions to today's log in `logs/` 11. **Draft scorecard** —
+score this run using the quality rubric (do NOT log yet) 12. **Verify (if trust level ≥
+2):** Spawn a fresh cross-context verifier with ONLY the actions taken + the quality
+rubric (Pattern 7 — verifier must NOT see worker reasoning). Verifier scores
+independently using the verifier prompt template. 13. **Log the authoritative
+scorecard:** - If verified: log the VERIFIER's scores. Note self-vs-verifier delta in
+agent_notes.md if gap > 1 star on any dimension. - If not verified (Level 1): log
+self-scores as the scorecard. - Mark scorecard source: `Source: self` or
+`Source: verified` 14. **Act on the logged scores:** - ⭐⭐⭐⭐ or above and no critical
+flags → proceed - ⭐⭐⭐ or warnings → log concerns in agent_notes.md - Below ⭐⭐⭐ or
+critical flags → alert human, roll back if possible 15. Update `agent_notes.md` if you
+learned something new (patterns, mistakes, corrections) 16. **Update trust counters** in
+`rules.md`: increment/reset `consecutive_good_runs`, decrement `cooldown_remaining`,
+check circuit breakers (Pattern 9). If 3 consecutive runs below ⭐⭐⭐, auto-demote
+trust level and alert.
 
 ### Judgment Guidelines
 
@@ -528,6 +955,7 @@ state files exist.>
 
 - Delete logs older than 30 days
 - <Any other periodic cleanup>
+- Review agent_notes.md Improvement Proposals — surface unresolved items
 
 ## Integration Points
 
@@ -536,19 +964,39 @@ state files exist.>
 
 ### Checklist Before Deploying
 
+**Structure & Setup:**
+
 - [ ] AGENT.md follows the standard anatomy
 - [ ] Setup interview creates rules.md with all needed preferences
+- [ ] Setup interview sets initial trust level (Level 1 default)
 - [ ] Has clear judgment guidelines (when to act vs leave alone)
-- [ ] Error handling: logs errors, alerts on critical failures
+
+**State Management:**
+
 - [ ] **Tracking state:** If workflow queries "have I seen this?", uses `processed.db`
       (SQLite), not markdown lists
+- [ ] **Contextual state:** agent_notes.md and rules.md are markdown, not JSON
 - [ ] **Sub-agents:** Any loop over a collection spawns sub-agents per item, not in
       orchestrator
-- [ ] **Contextual state:** agent_notes.md and rules.md are markdown, not JSON
+
+**Verification & Quality:**
+
+- [ ] **Definition of Done:** Completion criteria, output validation, and quality rubric
+      are all defined in AGENT.md
+- [ ] **Run scorecard:** Each run scores itself on the quality rubric (⭐ scale)
+- [ ] **Cross-context verification:** Verifier sub-agent configured for trust Level 2+
+- [ ] **Circuit breakers:** 3 consecutive runs below ⭐⭐⭐ triggers demotion and alert
+- [ ] **Self-improvement:** agent_notes.md has Failures & Corrections section; run loop
+      reads it as pre-flight guardrails
+
+**Operations:**
+
+- [ ] Error handling: logs errors, alerts on critical failures
 - [ ] Housekeeping: auto-prunes old logs and cleans up stale tracking entries (e.g.,
       `DELETE FROM processed WHERE last_checked < ...`)
 - [ ] Integration points documented
 - [ ] Cron job configured with appropriate schedule/model
+- [ ] Quality auditor job configured (for high-stakes workflows)
 - [ ] First week monitoring plan in place
 
 ---
@@ -559,11 +1007,19 @@ state files exist.>
 
 For each active workflow:
 
-1. **Review logs** — Any recurring errors? Silent failures?
-2. **Check agent_notes.md** — Has it learned useful patterns?
-3. **Review rules.md** — Still accurate? Preferences changed?
-4. **ROI check** — Still saving time? Worth the token cost?
-5. **Integration health** — Connected workflows still working?
+1. **Score trends** — Pull the past month's scorecards. Is the average stable,
+   improving, or degrading? Any dimension consistently low?
+2. **Review logs** — Any recurring errors? Silent failures? Patterns the workflow didn't
+   catch?
+3. **Check agent_notes.md** — Has it learned useful patterns? Are there unresolved
+   Improvement Proposals? Are Failures & Corrections entries still relevant?
+4. **Trust level check** — Is the current level appropriate? Should it advance or demote
+   based on score history?
+5. **Review rules.md** — Still accurate? Preferences changed?
+6. **ROI check** — Still saving time? Worth the token cost?
+7. **Integration health** — Connected workflows still working?
+8. **Quality auditor review** — If a QA job exists, review its reports. If not, consider
+   adding one.
 
 ### When to Retire a Workflow
 
@@ -604,6 +1060,12 @@ To retire: disable the cron job, archive the workflow directory, note in
 ---
 
 ## Existing Workflows Reference
+
+**Note:** Existing workflows predate the v0.3.0 verification patterns (Definition of
+Done, scorecards, cross-context verification, circuit breakers). New workflows should
+include the full quality infrastructure. When updating existing workflows, adopt
+patterns in this order: Definition of Done → Run Scorecard → Circuit Breakers →
+Graduated Trust → Cross-Context Verification (each builds on the previous).
 
 ### email-steward
 
