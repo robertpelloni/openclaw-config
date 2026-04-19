@@ -1,7 +1,10 @@
 ---
 name: hubspot
 version: 0.1.0
-description: Query HubSpot CRM contacts, deals, and deal stages via the HubSpot REST API. Use when you need to look up contacts, inspect deals, search the CRM, or review deal stage definitions in HubSpot.
+description:
+  Query HubSpot CRM contacts, deals, and deal stages via the HubSpot REST API. Use when
+  you need to look up contacts, inspect deals, search the CRM, or review deal stage
+  definitions in HubSpot.
 triggers:
   - hubspot
   - hub spot
@@ -26,9 +29,11 @@ Read HubSpot CRM data from the REST API.
 
 ## Setup
 
-Create or use a HubSpot private app token, then configure it as `HUBSPOT_API_KEY` in OpenClaw.
+Create or use a HubSpot private app token, then configure it as `HUBSPOT_API_KEY` in
+OpenClaw.
 
 Recommended minimum scopes for this skill:
+
 - `crm.objects.contacts.read`
 - `crm.objects.deals.read`
 - `schemas.deals.read`
@@ -62,5 +67,7 @@ Recommended minimum scopes for this skill:
 ## Notes
 
 - This version is read-only.
-- Owner lookup is not included because many HubSpot tokens do not have the extra scopes required for the owners API.
-- Deal stage labels come from the pipelines API, so stage output stays readable instead of showing only internal IDs.
+- Owner lookup is not included because many HubSpot tokens do not have the extra scopes
+  required for the owners API.
+- Deal stage labels come from the pipelines API, so stage output stays readable instead
+  of showing only internal IDs.
