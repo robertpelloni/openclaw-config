@@ -36,7 +36,7 @@ Recommended minimum scopes for this skill:
 
 - `crm.objects.contacts.read`
 - `crm.objects.deals.read`
-- `schemas.deals.read`
+- `crm.schemas.deals.read`
 
 ## What Users Ask
 

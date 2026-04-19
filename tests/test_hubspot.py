@@ -138,10 +138,11 @@ class TestContactsIntegration:
         search = run_skill("contacts", "--limit", "1")
         assert search.returncode == 0
         match = re.search(r"ID: (\d+)", search.stdout)
-        if match:
-            result = run_skill("contact", match.group(1))
-            assert result.returncode == 0
-            assert match.group(1) in result.stdout
+        if not match:
+            pytest.skip("HubSpot portal has no contacts to exercise by-ID lookup")
+        result = run_skill("contact", match.group(1))
+        assert result.returncode == 0
+        assert match.group(1) in result.stdout
 
 
 @requires_api_key
@@ -161,10 +162,11 @@ class TestDealsIntegration:
         search = run_skill("deals", "--limit", "1")
         assert search.returncode == 0
         match = re.search(r"ID: (\d+)", search.stdout)
-        if match:
-            result = run_skill("deal", match.group(1))
-            assert result.returncode == 0
-            assert match.group(1) in result.stdout
+        if not match:
+            pytest.skip("HubSpot portal has no deals to exercise by-ID lookup")
+        result = run_skill("deal", match.group(1))
+        assert result.returncode == 0
+        assert match.group(1) in result.stdout
 
 
 @requires_api_key
