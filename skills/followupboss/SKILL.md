@@ -1,6 +1,7 @@
 ---
 name: followupboss
 version: 0.1.1
+version: 0.1.0
 description:
   Query and manage Follow Up Boss CRM — contacts, notes, tasks, deals, and pipeline
   stages
