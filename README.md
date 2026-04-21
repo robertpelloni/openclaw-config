@@ -133,6 +133,7 @@ independently.
 | **asana**                | Task & project management via MCP                                      | 0.1.0   |
 | **todoist**              | Task & project management via official CLI                             | 0.1.0   |
 | **followupboss**         | Real estate CRM — contacts, deals, pipeline                            | 0.1.0   |
+| **hubspot**              | HubSpot CRM — contacts, deals, and deal pipelines                      | 0.1.0   |
 | **librarian**            | ~~Knowledge base maintenance~~ → replaced by **cortex**                | 0.5.0   |
 | **librarian**            | Curate and maintain the knowledge base                                 | 0.3.0   |
 | **create-great-prompts** | Prompt engineering for LLM agents                                      | 2.0.0   |
