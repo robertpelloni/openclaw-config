@@ -359,6 +359,7 @@ Not everyone has Grok configured. Before attempting an unfiltered delegation:
 ## Anti-Patterns
 
 - ❌ Delegating everything complex → defeats the purpose of having chat as default
+- ❌ Delegating everything complex → defeats the purpose of having Opus as default
 - ❌ Delegating without telling the user → they think you're frozen
 - ❌ Thin spawn prompts without context → generic, impersonal results
 - ❌ Relaying sub-agent results verbatim → sounds like a different AI
