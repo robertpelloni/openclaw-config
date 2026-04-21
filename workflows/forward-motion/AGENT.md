@@ -220,6 +220,8 @@ Avoid splitting runtime into multiple tiny scripts unless there is a strong reas
    - read `agent_notes.md` — specifically the **Failures & Corrections** section. Build
      a mental checklist of known pitfalls before processing anything. Past mistakes are
      active guardrails, not passive history.
+   - read `rules.md`
+   - read `agent_notes.md` if present
    - ensure DB schema exists and is current
 
 2. **Run the runtime entrypoint:**
@@ -288,6 +290,17 @@ Avoid splitting runtime into multiple tiny scripts unless there is a strong reas
 
    Safe housekeeping (duplicate cleanup, stale report removal) can still proceed without
    verification — only judgment calls and outgoing messages require it.
+
+4. **Execute:**
+   - steer bots in the same thread/topic
+   - post one batched human update when needed
+   - use message-type labels (`Forward Motion:`, `Needs You:`, `Blocked:`, `Fleet Ops:`,
+     `Maintenance:`, `Rolled Out:`)
+
+3. **Review before acting on judgment calls:**
+   - safe housekeeping can proceed automatically
+   - interventions, VIP-adjacent cleanup, shared/support-thread actions, and
+     cross-thread rollout decisions require review
 
 4. **Execute:**
    - steer bots in the same thread/topic
