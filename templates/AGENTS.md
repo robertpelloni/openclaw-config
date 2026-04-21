@@ -416,3 +416,32 @@ Each file is authoritative in its domain. When they conflict:
 When genuinely ambiguous, ask your human.
 
 Add conventions, style, and rules to `MEMORY.md` as you figure out what works.
+
+## Self-Reflection (Learning Loop)
+
+You get better over time. After meaningful interactions, silently evaluate whether
+something worth remembering happened:
+
+- Did my human correct me?
+- Did something fail before I found a working path?
+- Did I discover a non-obvious pattern?
+- Did my human state a preference I didn't know about?
+
+If any apply, write it as an instruction your future self can act on. Add it to the top
+of `memory/learning/corrections.md`. State the correct behavior, not what went wrong:
+
+```markdown
+## Email classification — mailing lists are not contacts
+
+Addresses matching `*@lists.*`, `*-noreply@*`, and `*-bounces@*` are mailing list
+infrastructure. Skip them during contact ingestion. They pollute the contact graph and
+trigger false follow-up suggestions.
+
+<!-- source: contact-steward | type: correction | date: 2026-03-28 -->
+```
+
+**Most sessions produce zero corrections. That's healthy.** Don't force it. Don't
+announce it. Just write the rule and move on.
+
+The librarian's daily run detects recurring patterns and promotes them to permanent
+homes. See `workflows/learning-loop/AGENT.md` for the full architecture.

@@ -1,6 +1,7 @@
 ---
 name: learning-loop
 version: 0.1.1
+version: 0.1.0
 description:
   Self-improvement system that captures corrections, detects patterns, and promotes
   validated learnings
@@ -162,6 +163,8 @@ step rather than mid-execution.
 
 **When:** Daily cron (piggyback on Cortex run) or manual trigger. **Where:** Reads
 `corrections.md`, writes to `patterns.md` **Who:** The Cortex skill (extended with
+**When:** Daily cron (piggyback on librarian run) or manual trigger. **Where:** Reads
+`corrections.md`, writes to `patterns.md` **Who:** The librarian skill (extended with
 learning analysis).
 
 ### The Detection Algorithm
@@ -284,6 +287,8 @@ Don't delete promoted entries from patterns.md — they're the audit trail.
 
 **When:** Monthly, or during Cortex runs. **Where:** `corrections.md`, `patterns.md`
 **Who:** Cortex skill.
+**When:** Monthly, or during librarian runs. **Where:** `corrections.md`, `patterns.md`
+**Who:** Librarian skill.
 
 ### Decay Rules
 
@@ -353,6 +358,9 @@ Quarterly compressed summaries of decayed entries.
 ### With Cortex (Daily)
 
 The Cortex daily cron should include a learning analysis pass:
+### With Librarian (Daily)
+
+The librarian's daily cron should include a learning analysis pass:
 
 1. After standard memory maintenance, read `memory/learning/corrections.md`
 2. Run pattern detection (Phase 2)
@@ -422,6 +430,10 @@ The learning loop runs on two schedules:
 separate job needed.
 
 **Validation (nightly):**
+**Pattern detection (daily, via librarian):** Already included in librarian's daily cron
+— no separate job needed.
+
+**Validation (weekly):**
 
 ```
 openclaw cron add \
@@ -437,6 +449,17 @@ openclaw cron add \
 
 Nightly at 11:30 PM (after nightly reflection at 11 PM). Uses an expensive model for
 judgment calls. Silent unless patterns need human review.
+  --cron "0 6 * * 0" \
+  --tz "<timezone>" \
+  --session isolated \
+  --delivery-mode none \
+  --model opus \
+  --timeout-seconds 300 \
+  --message "Run the learning loop validation. Read workflows/learning-loop/AGENT.md Phase 3 and follow it."
+```
+
+Weekly on Sunday at 6am. Uses an expensive model for judgment calls. Silent unless
+patterns need human review.
 
 ---
 

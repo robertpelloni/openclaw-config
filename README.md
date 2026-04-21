@@ -134,6 +134,7 @@ independently.
 | **todoist**              | Task & project management via official CLI                             | 0.1.0   |
 | **followupboss**         | Real estate CRM — contacts, deals, pipeline                            | 0.1.0   |
 | **librarian**            | ~~Knowledge base maintenance~~ → replaced by **cortex**                | 0.5.0   |
+| **librarian**            | Curate and maintain the knowledge base                                 | 0.3.0   |
 | **create-great-prompts** | Prompt engineering for LLM agents                                      | 2.0.0   |
 | **smart-delegation**     | Route work to Opus, Grok, or handle directly                           | 0.2.0   |
 | **workflow-builder**     | Design new autonomous workflows                                        | 0.1.0   |
@@ -165,6 +166,10 @@ invoke), workflows maintain state, learn your preferences, and manage themselves
 | **calendar-steward**  | Daily briefing — travel time, meeting prep, conflict detection | 0.1.0   |
 | **contact-steward**   | Detect unknown contacts across platforms, classify & organize  | 0.1.0   |
 | **security-sentinel** | Threat intelligence research & fleet exposure mapping          | 0.1.0   |
+| **contact-steward**   | Detect unknown contacts across platforms, classify & organize              | 0.2.0   |
+| **security-sentinel** | Threat intelligence research & fleet exposure mapping                      | 0.1.0   |
+| **cron-healthcheck**  | Detect broken cron jobs, auto-remediate, escalate failures                 | 0.1.0   |
+| **learning-loop**     | Self-improvement — capture corrections, detect patterns, promote learnings | 0.1.0   |
 
 Each workflow maintains its own state:
 
