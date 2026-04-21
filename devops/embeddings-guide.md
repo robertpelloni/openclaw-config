@@ -79,6 +79,7 @@ reindex) and quality matches the best local model. Uses a **dedicated OpenAI API
 separate from chat/completions routing.
 
 **Applies to:** Any EC2/cloud instance without a local GPU
+**Applies to:** Shelly, Hex, and any future EC2/cloud instances
 
 ### Apple Silicon Machines (GPU): Ollama `bge-m3`
 
@@ -91,6 +92,8 @@ small on quality with faster query latency (107ms vs 322ms). Indexing is slower 
 degrade results for bge-m3.
 
 **Applies to:** Any Apple Silicon machine in the fleet (Mac Studio, Mac Mini, etc.)
+**Applies to:** Nick's Mac Studio, and any future Mac Mini fleet machines (Julianna,
+Gil, Ali, Thomas, etc.)
 
 ## Configuration
 
@@ -158,6 +161,7 @@ brew install ollama
 ollama pull bge-m3
 
 # Enable auto-start on login
+# Enable auto-start on boot
 brew services start ollama
 
 # Verify
