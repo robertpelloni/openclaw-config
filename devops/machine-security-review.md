@@ -70,6 +70,11 @@ Replace `<username>` with the machine's user. If passwordless sudo isn't configu
 the agent runs, checks requiring sudo will be skipped and reported as "unable to check —
 sudo not configured."
 
+conversational. Explain what you're checking and why it matters. Offer to fix things:
+"Your firewall is disabled — want me to enable it? Here's what that protects against..."
+Teach as you go. The human should finish the session understanding their security
+posture better than when they started.
+
 ## Shared Machine Context
 
 Read `CLAUDE.local.md` first if it exists — it contains machine identity, paths,
@@ -147,6 +152,20 @@ LAN, not via a public IP.
 
 Before enabling a firewall remotely, confirm the user has local or out-of-band access to
 the machine in case a rule blocks their connection.
+- Firewall should be enabled:
+  `sudo /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate`
+- Stealth mode enabled: `--getstealthmode`
+- Tailscale and SSH allowed through
+
+**Linux:**
+
+- `ufw` enabled: `sudo ufw status`
+- Only expected ports open (SSH, Tailscale)
+- Default policy: deny incoming, allow outgoing
+
+**Interactive mode:** If the firewall is off, explain what it protects against (blocking
+unsolicited inbound connections, reducing attack surface) and offer to enable it. Walk
+through which services need exceptions.
 
 ### Open Ports
 
@@ -206,6 +225,7 @@ exact commands.
 - Tailscale running and connected: `tailscale status --self`
 - SSH enabled: check if tailscale SSH is active
 - No unexpected devices on the tailnet: `tailscale status` — compare against baseline
+- No unexpected devices on the tailnet: `tailscale status` — compare against known fleet
 
 ### API Key Exposure
 
@@ -231,6 +251,10 @@ Scan for leaked secrets. This runs during every audit and drift check.
    actual content across all commits — not just filenames — and catches secrets added to
    any file (README, JSON config, etc.), not only newly-added `.env`/`.key`/`.pem`
    files.
+   `git log -p --all -S 'sk-ant-' -S 'AKIA' -S 'ghp_' -S 'sk-' 2>/dev/null | head -200`
+   This scans actual content across all commits — not just filenames — and catches
+   secrets added to any file (README, JSON config, etc.), not only newly-added
+   `.env`/`.key`/`.pem` files.
 5. **Log files** — Check gateway logs and health check logs for accidentally logged
    credentials matching the patterns above
 6. **Process environment** — Check for secrets exposed in process env vars. Report the
@@ -338,6 +362,11 @@ Skills run from two locations that must both be checked:
    deployment model copies skills to the workspace. Check those copies too:
    - Find the workspace skills directory: check `CLAUDE.local.md` if it exists, or use
      the default at `~/.openclaw/workspace/skills/`
+1. **Config repo** (`~/.openclaw-config/skills/` or wherever the repo is cloned): Run
+   `git diff HEAD -- skills/` — any local modifications are findings.
+2. **Deployed workspace copies** (the actual executables that run): The openclaw
+   deployment model copies skills to the workspace. Check those copies too:
+   - Find the workspace skills directory (read `CLAUDE.local.md` for the path)
    - Compare each deployed skill against the corresponding config repo file:
      `diff <workspace>/skills/<name>/<name> <config-repo>/skills/<name>/<name>`
    - A tampered deployed skill that leaves the config repo untouched will not show in
@@ -401,6 +430,12 @@ Scan your own machine's ports. Use `nc -z` for lightweight checks.
 
 Only scan your own IPs. Never scan other machines — that's a different authorization
 boundary.
+- **Tailscale IP:** What's accessible from the fleet network?
+- **Public IP (if any):** Only scan the ports listed in `baseline.md` — do not perform
+  full 65535-port scans against public IPs (may trigger cloud provider abuse alerts).
+
+Only scan your own IPs. Never scan other fleet machines — that's a different
+authorization boundary.
 
 Compare results against firewall rules. If the firewall claims to block a port but the
 port responds, that's a critical finding.
@@ -443,6 +478,7 @@ Report findings — don't attempt actual exploitation.
 ## Escalation
 
 Three tiers. If `notification-routing.md` exists, follow its escalation model.
+Three tiers, matching the fleet notification model in `notification-routing.md`.
 
 ### Tier 1 — Auto-Fix and Report
 

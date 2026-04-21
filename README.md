@@ -2,6 +2,8 @@
   <img src="https://img.shields.io/badge/OpenClaw-Config-D97757?style=for-the-badge&labelColor=1a1a2e" alt="OpenClaw Config">
   <br><br>
   <img src="https://img.shields.io/badge/python-3.13+-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python 3.13+">
+  <a href="https://github.com/TechNickAI/openclaw-config/releases"><img src="https://img.shields.io/badge/version-0.16.0-D97757?style=flat-square" alt="Version"></a>
+  <img src="https://img.shields.io/badge/python-3.11+-3776ab?style=flat-square&logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
   <a href="https://github.com/TechNickAI/openclaw-config/stargazers"><img src="https://img.shields.io/github/stars/TechNickAI/openclaw-config?style=flat-square&color=D97757" alt="Stars"></a>
   <a href="https://github.com/TechNickAI/openclaw-config/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome"></a>
@@ -34,6 +36,11 @@ Everything is markdown and Python scripts. No frameworks, no databases, no lock-
   calendar, organize contacts, monitor security threats, keep cron jobs healthy, and
   improve themselves over time — learning your preferences and compounding corrections
   into permanent knowledge
+- **11 skills** — Web research, meeting transcripts, CRM, phone system, task management,
+  and more — each a standalone Python script with zero setup
+- **5 autonomous workflows** — Agents that triage your inbox, manage tasks, prep your
+  calendar, organize contacts, and monitor security threats — learning your preferences
+  over time
 - **Templates for identity** — Define your AI's personality, your profile, and how it
   should operate
 - **DevOps included** — Hourly health checks, fleet management across machines,
@@ -98,6 +105,7 @@ openclaw-config/
 │   ├── security-sentinel/  # Threat intelligence & exposure mapping
 │   ├── cron-healthcheck/   # Broken cron detection & auto-remediation
 │   └── learning-loop/     # Self-improvement — corrections → patterns → knowledge
+│   └── security-sentinel/  # Threat intelligence & exposure mapping
 │
 ├── memory/             # Example memory directory structure
 │   ├── people/         # One file per person
@@ -150,6 +158,13 @@ invoke), workflows maintain state, learn your preferences, and manage themselves
 | **cron-healthcheck**  | Detect broken cron jobs, auto-remediate, escalate failures                 | 0.1.0   |
 | **learning-loop**     | Self-improvement — capture corrections, detect patterns, promote learnings | 0.1.0   |
 | **llm-usage-report**  | Daily LLM spend digest — cost breakdown by session and model               | 0.1.0   |
+| Workflow              | What it does                                                   | Version |
+| --------------------- | -------------------------------------------------------------- | ------- |
+| **email-steward**     | Triage inbox — archive noise, label, alert on important        | 0.2.0   |
+| **task-steward**      | Classify work, create tasks, spawn sub-agents, QA results      | 0.1.0   |
+| **calendar-steward**  | Daily briefing — travel time, meeting prep, conflict detection | 0.1.0   |
+| **contact-steward**   | Detect unknown contacts across platforms, classify & organize  | 0.1.0   |
+| **security-sentinel** | Threat intelligence research & fleet exposure mapping          | 0.1.0   |
 
 Each workflow maintains its own state:
 
