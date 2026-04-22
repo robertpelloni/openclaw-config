@@ -1,28 +1,18 @@
 ---
 name: drive-to-done
-version: 0.2.0
+version: 0.3.0
 description:
   Drive a task all the way to a verified done state — write DoD first, verify each item
   with evidence, stop only at named stop conditions.
 triggers:
   - finish this
-  - go do
   - just do it
   - ship it
   - get it done
-  - make it work
   - keep going
   - you are not done
   - drive to done
   - finish the job
-  - build
-  - ship
-  - implement
-  - create
-  - deploy
-  - set up
-  - make me a
-  - write a
   - research and recommend
   - go figure out
 metadata:
@@ -57,7 +47,8 @@ with a verified URL, and the artifact paths exist on disk" is DoD.
 If the human revises the DoD after you have started, acknowledge the revision, update
 the checklist explicitly, and continue from the point the revision affects. Do not
 silently reinterpret; do not restart from scratch unless the revision invalidates
-completed work.
+completed work. This rule covers human-initiated changes only — if you discover the DoD
+was wrong mid-task, that is stop condition #5, not a self-revision.
 
 ### Stop conditions are explicit and named
 
@@ -65,13 +56,13 @@ You stop only on one of these, and you name which one when you stop:
 
 1. **Done** — every DoD item is satisfied and you have verified it
 2. **Human-gated blocker** — the next step requires the human's credential, decision,
-   physical presence, or explicit approval, and there is no other useful work you can do
-   toward the DoD in the meantime. If a blocker involves both a human credential and an
-   external system failure, it is #2 — anything the human must act on to resolve is #2,
-   regardless of the external cause.
+   physical presence, or explicit approval, and there is no other DoD item you can
+   advance in the meantime. Discriminating question: "Would human action change the
+   outcome right now?" If yes → #2. This includes cases where an external system is also
+   failing — if the human must act to resolve it, it is #2 regardless.
 3. **Hard external blocker** — an external system you do not control is failing in a way
-   you cannot route around, and no human action would unblock it (auth revoked by the
-   service itself, API outage, network partition)
+   you cannot route around, and no human action would change the outcome right now (auth
+   revoked by the service itself, API outage, network partition)
 4. **Budget cap reached** — a pre-declared time, token, or money budget for the task was
    exhausted (declare the budget in Step 1; if none was declared, this condition does
    not fire — use loop detection to catch runaway execution instead)
@@ -94,15 +85,16 @@ the original request and pick.
 Before claiming an item is done, you produce evidence. Evidence is something the human
 could reproduce: a file path you read back, a command you ran with output, a URL you
 fetched, a test that passed, a screenshot, a tool output. "It should work" is not
-evidence. "I ran X and got Y" is evidence.
+evidence. "I ran X and got Y" is evidence. Evidence must include the actual output or
+artifact — a pointer to it ("I read the file") is not evidence.
 
 ### Loop detection
 
-If you produce 2 outputs in a row with the same observable result and no new DoD item
-checked off — same tool called with the same or equivalent arguments, same error
-returned, same file produced with no new content — stop and switch strategy. If you
-produce 3, stop entirely, summarize the actual blocker, and hand back cleanly with the
-exact next step the human owns. The counter resets when a DoD item is checked off.
+Each tool invocation counts as one loop tick. If 2 ticks in a row have the same tool,
+same arguments, and same result with no new DoD item checked off — stop and switch
+strategy. If 3, stop entirely, summarize the actual blocker, and hand back cleanly with
+the exact next step the human owns. The counter resets when a DoD item is checked off.
+Ticks accumulate across turns; the turn boundary does not reset the counter.
 
 ## Required Workflow
 
@@ -116,7 +108,9 @@ In your first response on the task, do these three things in order:
    it: "I'll cap this at N steps / N minutes / N API calls"
 
 Keep this tight. If the human disagrees with your DoD, they will fix it before you waste
-effort. If they say nothing, you have a contract.
+effort. If they say nothing, you have a contract. If invoked without a human in the loop
+(cron, pipeline, chained agent), proceed after stating the DoD and flagging that no
+confirmation was received.
 
 ### Step 2 — Plan only what is needed
 
@@ -144,8 +138,9 @@ When you actually finish, the final message has this shape, in this order:
 2. **What is now true.** Bullets, each one a verifiable claim with a path or URL
 3. **What I verified.** Bullets, each one citing the evidence
 4. **What I did not do.** Bullets, each with a one-line reason. Items here must not be
-   items that were in the original DoD — those are failures, not deferrals. Partial work
-   belongs in "What I verified" with an honest scope statement, not hidden here.
+   items that were in the original DoD — those are failures, not deferrals. A DoD item
+   that was started but not fully completed goes in "What I verified" with an explicit
+   scope statement (e.g. "wrote 3 of 5 sections; stopped at X because Y") — not here.
 5. **What you own next.** Only if there is a real human-only step, otherwise omit
 
 No menus. No "want me to..." If there is genuinely an optional next move worth flagging,
@@ -173,13 +168,6 @@ If you must hand back before done, the message has this shape:
   apologizing
 - Writing a beautiful scaffold and treating that as the deliverable when the deliverable
   was actually research findings
-- Generating 2+ responses with the same intent and no new progress
+- Producing 3+ outputs with the same observable result without having switched strategy
+  at 2 — the loop detection rule governs this; act at 2, stop at 3
 
-## Why This Skill Exists
-
-The skill was born from a task that was treated as done after a workflow scaffold and
-three thin findings. It was not done. The DoD had not been written, the research was not
-real, and the brief failed the "wake-up-delighted" test. After several rounds of
-correction, real research was done and real findings were produced. **The skill exists
-so that next time, the DoD is written in turn 1 and the verification happens before
-"done" is claimed, not after the human has to say it.**
