@@ -75,7 +75,11 @@ OpenClaw includes a built-in cron scheduler that runs jobs on configurable sched
 - **Job health visibility** — `openclaw cron status` shows all jobs with last run time,
   error count, and model used
 
+<<<<<<< HEAD
 **Current job inventory (example instance):** 15 active jobs spanning health monitoring,
+=======
+**Current job inventory (Nick's instance):** 15 active jobs spanning health monitoring,
+>>>>>>> origin/docs/migration-analysis
 email triage, contact management, daily briefings, knowledge curation, and more —
 running from every 15 minutes to weekly schedules.
 
@@ -106,7 +110,11 @@ OpenClaw uses a **three-tier memory architecture:**
 - Organized by type: `memory/people/`, `memory/projects/`, `memory/topics/`,
   `memory/decisions/`
 - Vector-searchable via embeddings (LM Studio local or OpenAI fallback)
+<<<<<<< HEAD
 - The `cortex` skill promotes durable knowledge upward through tiers
+=======
+- The `librarian` skill promotes durable knowledge upward through tiers
+>>>>>>> origin/docs/migration-analysis
 
 **Persistence:** Memory lives in SQLite (`~/.openclaw/memory/main.sqlite`) for search,
 with markdown files as the human-readable canonical source. Memory persists across all
@@ -177,7 +185,11 @@ Skills are standalone tools the AI agent can invoke:
 vapi-calls (outbound voice calls)
 
 **Knowledge:** parallel (web search), limitless (lifelog recall), fireflies (meeting
+<<<<<<< HEAD
 transcripts), fathom (meeting recordings), cortex (knowledge curation)
+=======
+transcripts), fathom (meeting recordings), librarian (knowledge curation)
+>>>>>>> origin/docs/migration-analysis
 
 **Productivity:** asana (task management), todoist (task management), followupboss (CRM)
 
