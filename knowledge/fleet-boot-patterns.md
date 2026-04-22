@@ -385,7 +385,11 @@ tail -f ~/.openclaw-bravo/logs/openclaw.log | grep -i mention
 @bravo test
 bravo test
 @bravo test
+<<<<<<< HEAD
 bravo test (if partial enabled)
+=======
+Shell test (if partial enabled)
+>>>>>>> origin/scrub-pii-rename-docs
 ```
 
 Check logs for which pattern matched.

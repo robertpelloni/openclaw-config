@@ -79,7 +79,10 @@ reindex) and quality matches the best local model. Uses a **dedicated OpenAI API
 separate from chat/completions routing.
 
 **Applies to:** Any EC2/cloud instance without a local GPU
+<<<<<<< HEAD
 **Applies to:** Shelly, Hex, and any future EC2/cloud instances
+=======
+>>>>>>> origin/scrub-pii-rename-docs
 
 ### Apple Silicon Machines (GPU): Ollama `bge-m3`
 
@@ -92,8 +95,11 @@ small on quality with faster query latency (107ms vs 322ms). Indexing is slower 
 degrade results for bge-m3.
 
 **Applies to:** Any Apple Silicon machine in the fleet (Mac Studio, Mac Mini, etc.)
+<<<<<<< HEAD
 **Applies to:** Nick's Mac Studio, and any future Mac Mini fleet machines (Julianna,
 Gil, Ali, Thomas, etc.)
+=======
+>>>>>>> origin/scrub-pii-rename-docs
 
 ## Configuration
 
