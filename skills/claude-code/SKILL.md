@@ -50,7 +50,8 @@ repo work as a Claude Code job.
 
 - It picks up the repo's `CLAUDE.md` / `AGENTS.md` and applies the project's standards
 - It runs the repo's lint, format, and test conventions automatically
-- It knows the `/ai-coding-config:multi-review` and `/ai-coding-config:address-pr-comments` workflows
+- It knows the `/ai-coding-config:multi-review` and
+  `/ai-coding-config:address-pr-comments` workflows
 - The bug bots on the resulting PR review Claude Code's output the same way they'd
   review a human's — that loop is part of why we bother with a PR
 
@@ -67,18 +68,37 @@ this sequence without being told:
    naming convention from `AGENTS.md` / `CLAUDE.md` if it specifies one.
 3. **Build it** via Claude Code.
 4. **`/ai-coding-config:multi-review`** via Claude Code — phrase it mid-sentence, never
-   as the first token (e.g. `"do a /ai-coding-config:multi-review on the staged changes"`).
+   as the first token (e.g.
+   `"do a /ai-coding-config:multi-review on the staged changes"`).
 5. **Push and open the PR.** Let Claude Code open the PR as part of the same invocation.
    Fall back to `gh pr create` only if Claude Code's run ended before reaching the push
    step. Ensure `gh` is available in PATH.
 6. **Wait for the bug bots.** Run `gh pr checks --watch` until all checks complete. If
    review comments appear, proceed to the next step.
-7. **`/ai-coding-config:address-pr-comments`** via Claude Code — same mid-sentence phrasing rule.
+7. **`/ai-coding-config:address-pr-comments`** via Claude Code — same mid-sentence
+   phrasing rule.
 8. **Post-merge sync.** After the PR merges, pull any live consumer copy if applicable
    (e.g. `git -C ~/.openclaw-config pull`).
 
 For **trivial edits** (one file, one change, no PR) skip the ceremony — just make the
 edit. If you're unsure whether something qualifies as trivial, it doesn't.
+
+## New repo setup (pre-commit)
+
+When creating a **new repo** from scratch, set up pre-commit hooks before the first real
+commit. Otherwise the first PR eats a round of formatter/linter failures from the bug
+bots that should have been caught locally.
+
+1. Add a `.pre-commit-config.yaml` matching the repo's stack (Prettier for JS/TS/MD,
+   Black + Ruff for Python, etc. — follow whatever `CLAUDE.md` / `AGENTS.md` specifies
+   if present).
+2. `pip install pre-commit` (or `brew install pre-commit`) if not already installed.
+3. `pre-commit install` inside the repo to wire up the git hook.
+4. `pre-commit run --all-files` once to normalize the initial commit.
+5. Commit the config and the normalized files together.
+
+Don't skip step 4 — it surfaces every formatting issue up front instead of letting them
+land in the first PR.
 
 ## Fresh-clone discipline (don't skip this)
 
@@ -106,7 +126,8 @@ If the prompt starts with `/multi-review` or `/address-pr-comments`, Claude Code
 Examples that work:
 
 - "do a /ai-coding-config:multi-review on the staged changes"
-- "implement X, then /ai-coding-config:multi-review, then open a PR, then /ai-coding-config:address-pr-comments"
+- "implement X, then /ai-coding-config:multi-review, then open a PR, then
+  /ai-coding-config:address-pr-comments"
 - "pull the latest review feedback on PR #112 and /ai-coding-config:address-pr-comments"
 
 ### Claude Code must see a logged-in shell
@@ -133,8 +154,9 @@ zsh -c 'source ~/.zshrc && cd <repo-path> && claude --print --permission-mode by
 
 ## Long-running calls
 
-`/ai-coding-config:multi-review` and `/ai-coding-config:address-pr-comments` can run 5-15 minutes. Launch in the
-background and poll for completion — do not tight-loop, do not kill the job prematurely.
+`/ai-coding-config:multi-review` and `/ai-coding-config:address-pr-comments` can run
+5-15 minutes. Launch in the background and poll for completion — do not tight-loop, do
+not kill the job prematurely.
 
 ## What this skill tells you NOT to do
 
