@@ -5,8 +5,8 @@ description:
   Route real repo work to Claude Code instead of editing by hand. Triggers on "claude
   code" or "cc", and on any request to edit, fix, refactor, or open a PR in a repo
   outside ~/.openclaw/workspace. Claude Code picks up the repo's CLAUDE.md / AGENTS.md,
-  applies its standards, and knows the /multi-review and /address-pr-comments workflows
-  we want bug bots checking against.
+  applies its standards, and knows the /ai-coding-config:multi-review and
+  /ai-coding-config:address-pr-comments workflows we want bug bots checking against.
 triggers:
   - claude code
   - cc this
@@ -22,8 +22,8 @@ metadata:
 
 ## Main trigger
 
-The phrase **"claude code"** (or a clear synonym) is the primary signal. When Nick says
-it, this skill applies — full stop.
+The phrase **"claude code"** (or a clear synonym) is the primary signal. When the
+operator says it, this skill applies — full stop.
 
 Secondary trigger: any request to edit, fix, refactor, or open a PR in a repo **with
 reviewers or that goes through PRs** — meaning any repo that is not
@@ -50,7 +50,7 @@ repo work as a Claude Code job.
 
 - It picks up the repo's `CLAUDE.md` / `AGENTS.md` and applies the project's standards
 - It runs the repo's lint, format, and test conventions automatically
-- It knows the `/multi-review` and `/address-pr-comments` workflows
+- It knows the `/ai-coding-config:multi-review` and `/ai-coding-config:address-pr-comments` workflows
 - The bug bots on the resulting PR review Claude Code's output the same way they'd
   review a human's — that loop is part of why we bother with a PR
 
@@ -66,14 +66,14 @@ this sequence without being told:
 2. **Start a feature branch.** Use `feat/<short-purpose>` by default; follow the repo's
    naming convention from `AGENTS.md` / `CLAUDE.md` if it specifies one.
 3. **Build it** via Claude Code.
-4. **`/multi-review`** via Claude Code — phrase it mid-sentence, never as the first
-   token (e.g. `"do a /multi-review on the staged changes"`).
+4. **`/ai-coding-config:multi-review`** via Claude Code — phrase it mid-sentence, never
+   as the first token (e.g. `"do a /ai-coding-config:multi-review on the staged changes"`).
 5. **Push and open the PR.** Let Claude Code open the PR as part of the same invocation.
    Fall back to `gh pr create` only if Claude Code's run ended before reaching the push
    step. Ensure `gh` is available in PATH.
 6. **Wait for the bug bots.** Run `gh pr checks --watch` until all checks complete. If
    review comments appear, proceed to the next step.
-7. **`/address-pr-comments`** via Claude Code — same mid-sentence phrasing rule.
+7. **`/ai-coding-config:address-pr-comments`** via Claude Code — same mid-sentence phrasing rule.
 8. **Post-merge sync.** After the PR merges, pull any live consumer copy if applicable
    (e.g. `git -C ~/.openclaw-config pull`).
 
@@ -105,9 +105,9 @@ If the prompt starts with `/multi-review` or `/address-pr-comments`, Claude Code
 
 Examples that work:
 
-- "do a /multi-review on the staged changes"
-- "implement X, then /multi-review, then open a PR, then /address-pr-comments"
-- "pull the latest review feedback on PR #112 and /address-pr-comments"
+- "do a /ai-coding-config:multi-review on the staged changes"
+- "implement X, then /ai-coding-config:multi-review, then open a PR, then /ai-coding-config:address-pr-comments"
+- "pull the latest review feedback on PR #112 and /ai-coding-config:address-pr-comments"
 
 ### Claude Code must see a logged-in shell
 
@@ -133,7 +133,7 @@ zsh -c 'source ~/.zshrc && cd <repo-path> && claude --print --permission-mode by
 
 ## Long-running calls
 
-`/multi-review` and `/address-pr-comments` can run 5-15 minutes. Launch in the
+`/ai-coding-config:multi-review` and `/ai-coding-config:address-pr-comments` can run 5-15 minutes. Launch in the
 background and poll for completion — do not tight-loop, do not kill the job prematurely.
 
 ## What this skill tells you NOT to do
@@ -142,9 +142,9 @@ background and poll for completion — do not tight-loop, do not kill the job pr
   non-trivial. Use Claude Code.
 - Don't start a Claude Code prompt with a slash command — put slash commands
   mid-sentence.
-- Don't skip `/multi-review` when the work is going to merge.
+- Don't skip `/ai-coding-config:multi-review` when the work is going to merge.
 - After pushing, wait for bug bots via `gh pr checks --watch`, then run
-  `/address-pr-comments` before declaring done.
+  `/ai-coding-config:address-pr-comments` before declaring done.
 - Don't clone over an existing checkout. Fresh clone into a new sibling directory.
 
 ## Relationship to other skills
