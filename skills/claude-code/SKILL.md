@@ -55,6 +55,20 @@ repo work as a Claude Code job.
 - The bug bots on the resulting PR review Claude Code's output the same way they'd
   review a human's — that loop is part of why we bother with a PR
 
+## What "done" means
+
+When Nick asks for a Claude Code job, **"done" = the PR is ready to merge**. Not "PR
+opened." Not "first round of bots ran." Ready to merge means:
+
+- All CI checks green (pre-commit, tests, build, etc.)
+- All bot review comments (Codex, Cursor Bugbot, Claude Review) addressed or explicitly
+  dismissed with reason
+- No outstanding P1/P2 findings
+
+Keep iterating — push fixes, re-run `/ai-coding-config:address-pr-comments`, wait for
+checks again — until that bar is hit. Then report done. Don't stop at "PR opened" or
+"checks running" and call it done.
+
 ## Default workflow when the work is going into a real repo
 
 When Nick asks for something that will land in a repo with reviewers or bug bots, do
