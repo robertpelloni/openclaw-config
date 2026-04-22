@@ -123,6 +123,12 @@ def build_query_options(args: argparse.Namespace, *, skip_edited_filter: bool = 
     not "exclude non-edited photos."
     """
     edited = None if skip_edited_filter else (True if getattr(args, "edited", False) else None)
+def build_query_options(args: argparse.Namespace, *, edited_filter: bool = True) -> QueryOptions:
+    """Build QueryOptions from parsed CLI arguments.
+
+    edited_filter controls whether --edited narrows the query to only edited photos.
+    Pass False for export, where --edited means "prefer edited source" not "only edited".
+    """
     return QueryOptions(
         person=args.person or None,
         album=args.album or None,
@@ -132,6 +138,7 @@ def build_query_options(args: argparse.Namespace, *, skip_edited_filter: bool = 
         favorite=True if getattr(args, "favorite", False) else None,
         edited=True if (filter_edited and getattr(args, "edited", False)) else None,
         edited=edited,
+        edited=True if (edited_filter and getattr(args, "edited", False)) else None,
         photos=True,
         movies=getattr(args, "movies", False),
         newest_first=getattr(args, "newest_first", False),
@@ -167,6 +174,8 @@ def cmd_export(args: argparse.Namespace) -> None:
     photos = db.query(build_query_options(args, filter_edited=False))
     # skip_edited_filter: --edited controls source selection (prefer edited path), not DB filtering
     photos = db.query(build_query_options(args, skip_edited_filter=True))
+    # edited_filter=False: --edited means "prefer edited source", not "only edited photos"
+    photos = db.query(build_query_options(args, edited_filter=False))
     if args.limit:
         photos = photos[: args.limit]
 
@@ -249,6 +258,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_export.add_argument("--newest-first", action=argparse.BooleanOptionalAction, default=True, help="Sort newest first")
     p_export.add_argument("--movies", action=argparse.BooleanOptionalAction, default=True, help="Include movies (default: on, use --no-movies to exclude)")
     p_export.add_argument("--newest-first", action=argparse.BooleanOptionalAction, default=True, help="Sort newest first (default: on, use --no-newest-first to disable)")
+    p_export.add_argument("--movies", action=argparse.BooleanOptionalAction, default=True, help="Include movies (default: on, --no-movies to exclude)")
+    p_export.add_argument("--newest-first", action=argparse.BooleanOptionalAction, default=True, help="Sort newest first (default: on, --no-newest-first to disable)")
     p_export.add_argument("--limit", type=int, default=DEFAULT_LIMIT)
     p_export.add_argument("--dry-run", action="store_true")
 
