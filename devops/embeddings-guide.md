@@ -161,7 +161,10 @@ brew install ollama
 ollama pull bge-m3
 
 # Enable auto-start on login
+<<<<<<< HEAD
 # Enable auto-start on boot
+=======
+>>>>>>> origin/fix/embeddings-guide-boot-wording
 brew services start ollama
 
 # Verify
