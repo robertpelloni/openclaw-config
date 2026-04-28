@@ -9,13 +9,19 @@ These exist because some failures are too costly to leave to model judgment.
 ## How floors apply
 
 Before the gating LLM runs, the orchestrator evaluates the artifact + envelope against
-each floor rule. The first matching floor sets:
+**every** floor rule. Floors compose cumulatively, and the strictest result wins per
+dimension. Each floor that matches contributes:
 
 - a **minimum verdict** (e.g. `hold`)
 - and/or a **required reviewer set** (must run, even if gating tries to skip them)
 - and/or a **hard verdict** (e.g. `block`, no review possible)
 
-The gating LLM is told the floor decision in its prompt and must respect it.
+The combined floor decision (strictest verdict + union of required reviewers) is told to
+the gating LLM, which must respect it. Don't stop at the first match — an artifact
+that's both public-facing and financial needs both floors applied.
+
+If any floor produces a hard `block`, the orchestrator returns immediately without
+running the panel.
 
 ## Floors (v1)
 
