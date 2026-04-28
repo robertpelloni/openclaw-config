@@ -30,14 +30,17 @@ REPOS=(
   "langchain-ai/langgraph"
 )
 
+FAILED_REPOS=()
+
 emit_release() {
   local repo="$1"
-  # Use gh api for portability across older gh versions that lack `release list --json`.
-  gh api "repos/$repo/releases?per_page=3" 2>/dev/null \
+  # gh stderr passes through so cron mail captures the actual auth/rate-limit/API error.
+  # Pipefail catches gh/jq failures so we can report rather than silently swallow them.
+  if ! gh api "repos/$repo/releases?per_page=3" \
     | jq -c --arg repo "$repo" --arg discovered "$(now_iso)" '
         .[] | {
           id: ("gh-release:" + $repo + ":" + .tag_name),
-          source_id: "openclaw-core",
+          source_id: ("gh-release:" + $repo),
           kind: "github_release",
           repo: $repo,
           title: (.name // .tag_name),
@@ -45,12 +48,28 @@ emit_release() {
           published_at: .published_at,
           discovered_at: $discovered
         }
-      ' >> "$INBOX" || true
+      ' >> "$INBOX"; then
+    echo "[ecosystem-intel/harvest_github] WARN: harvest failed for $repo (gh stderr above shows the cause)" >&2
+    FAILED_REPOS+=("$repo")
+  fi
 }
 
 for repo in "${REPOS[@]}"; do
   emit_release "$repo"
 done
 
-# Report summary to stderr so cron logs stay readable.
-echo "[ecosystem-intel/harvest_github] wrote to $INBOX ($(wc -l <"$INBOX" | tr -d ' ') total lines)" >&2
+# Report summary to stderr so cron logs stay readable. Failures first so the issue
+# is the first thing visible if the cron-healthcheck workflow scans this output.
+if [ "${#FAILED_REPOS[@]}" -gt 0 ]; then
+  echo "[ecosystem-intel/harvest_github] WARN: ${#FAILED_REPOS[@]} of ${#REPOS[@]} repos failed: ${FAILED_REPOS[*]}" >&2
+fi
+
+total_lines=$(wc -l <"$INBOX" | tr -d ' ')
+echo "[ecosystem-intel/harvest_github] wrote to $INBOX ($total_lines total lines)" >&2
+
+# Total failure is a hard error — cron-healthcheck should escalate. Partial failure
+# is acceptable (some sources harvested) and exits 0.
+if [ "${#FAILED_REPOS[@]}" -eq "${#REPOS[@]}" ]; then
+  echo "[ecosystem-intel/harvest_github] FATAL: all repos failed — likely auth, network, or systemic issue" >&2
+  exit 1
+fi
