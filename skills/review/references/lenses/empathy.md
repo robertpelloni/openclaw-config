@@ -74,20 +74,16 @@ Concrete checks:
 
 ## Output
 
-```json
-{
-  "lens": "empathy",
-  "findings": [
-    {
-      "severity": "high|med|low",
-      "noticed": "Reply leads with the agent's own debug context rather than acknowledging the user's frustration",
-      "suggestion": "Lead with acknowledgment first; defer the explanation or drop it"
-    }
-  ],
-  "verdict_signal": "block" | "hold" | "edit" | "pass",
-  "proposed_edit": "<rewritten artifact, optional>"
-}
-```
+Tell us what you noticed, in plain language. For each finding: tag it with severity (low
+/ med / high), describe what you noticed, and offer a suggestion. Give a verdict signal
+at the end: `pass`, `edit`, `hold`, or `block`. If your signal is `edit`, include a
+rewritten artifact.
+
+Example finding:
+
+> **medium** — Reply leads with the agent's own debug context rather than acknowledging
+> the user's frustration. **Suggestion:** lead with acknowledgment first; defer the
+> explanation or drop it.
 
 ## Severity guidance
 

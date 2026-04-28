@@ -41,21 +41,17 @@ the envelope (audience, channel, artifact type, money-mention).
 
 ## Output
 
-```json
-{
-  "lens": "rules-compliance",
-  "findings": [
-    {
-      "severity": "high",
-      "issue": "Mentions <person-a> in a draft to <person-b> who are flagged as an isolation pair",
-      "suggestion": "Remove all references to <person-a> before sending",
-      "rule_source": "memory/people/<person-a>.md"
-    }
-  ],
-  "verdict_signal": "block" | "hold" | "edit" | "pass",
-  "proposed_edit": "<rewritten artifact, optional>"
-}
-```
+Tell us what you noticed, in plain language. For each finding: tag it with severity (low
+/ med / high), describe the issue, cite the rule source (e.g.
+`memory/people/<person-a>.md`), and offer a suggestion. Give a verdict signal at the
+end: `pass`, `edit`, `hold`, or `block`. If your signal is `edit`, include a rewritten
+artifact.
+
+Example finding:
+
+> **high** — Mentions `<person-a>` in a draft to `<person-b>`, who are flagged as an
+> isolation pair (rule source: `memory/people/<person-a>.md`). **Suggestion:** remove
+> all references to `<person-a>` before sending.
 
 ## Severity guidance
 

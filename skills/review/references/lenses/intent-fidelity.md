@@ -29,20 +29,15 @@ as the rubric:
 
 ## Output
 
-```json
-{
-  "lens": "intent-fidelity",
-  "findings": [
-    {
-      "severity": "high|med|low",
-      "issue": "Agent took action when user asked for analysis",
-      "suggestion": "Strip the action; deliver findings only and ask before executing"
-    }
-  ],
-  "verdict_signal": "block" | "hold" | "edit" | "pass",
-  "proposed_edit": "<rewritten artifact, optional>"
-}
-```
+Tell us what you noticed, in plain language. For each finding: tag it with severity (low
+/ med / high), describe the issue, and offer a suggestion. Give a verdict signal at the
+end: `pass`, `edit`, `hold`, or `block`. If your signal is `edit`, include a rewritten
+artifact.
+
+Example finding:
+
+> **high** — Agent took action when user asked for analysis. **Suggestion:** strip the
+> action; deliver findings only and ask before executing.
 
 ## Severity guidance
 

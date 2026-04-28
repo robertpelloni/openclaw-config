@@ -45,20 +45,15 @@
 
 ## Output
 
-```json
-{
-  "lens": "data-exposure",
-  "findings": [
-    {
-      "severity": "high|med|low",
-      "issue": "Message references debug context from a separate incident thread",
-      "suggestion": "Remove debug context; user only needs the conclusion"
-    }
-  ],
-  "verdict_signal": "block" | "hold" | "edit" | "pass",
-  "proposed_edit": "<rewritten artifact, optional>"
-}
-```
+Tell us what you noticed, in plain language. For each finding: tag it with severity (low
+/ med / high), describe the issue, and offer a suggestion. Give a verdict signal at the
+end: `pass`, `edit`, `hold`, or `block`. If your signal is `edit`, include a rewritten
+artifact.
+
+Example finding:
+
+> **medium** — Message references debug context from a separate incident thread.
+> **Suggestion:** remove the debug context; the recipient only needs the conclusion.
 
 ## Severity guidance
 

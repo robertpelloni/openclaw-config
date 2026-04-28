@@ -1,6 +1,6 @@
 ---
 name: review
-version: 0.1.0
+version: 0.2.0
 description:
   A pause before an artifact goes into the world. Reviews external comms, money,
   calendar, public posts, or send-as-operator actions through a small panel of
@@ -119,25 +119,20 @@ care. That is the question this skill is actually for.
 | **data-exposure**      | Internal context, PII, or wrong-person info leaking out.                                                   | [data-exposure.md](references/lenses/data-exposure.md)           |
 | **action-correctness** | For tool calls: right tool, right params, right target.                                                    | [action-correctness.md](references/lenses/action-correctness.md) |
 
-## Verdict shape
+## What the review returns
 
-```json
-{
-  "verdict": "pass" | "edit" | "hold" | "block",
-  "rationale": "one or two sentences in plain language",
-  "edits": "<rewritten artifact, only if verdict=edit>",
-  "hold_reason": "<why human needs to see this, only if verdict=hold>",
-  "block_reason": "<which rule was crossed, only if verdict=block>",
-  "findings": [
-    { "lens": "...", "severity": "low|med|high", "noticed": "...", "suggestion": "..." }
-  ],
-  "metadata": {
-    "lenses_used": ["..."],
-    "model_used": "<resolved model alias or path>",
-    "degraded": null | "no_dedicated_reviewer" | "model_unreachable" | "partial_panel"
-  }
-}
-```
+Plain language, the way a kind friend would describe what they noticed. The calling
+agent reads the response and acts on it; no JSON schema, no parser. Cover these things:
+
+- **Verdict** — one of `pass`, `edit`, `hold`, or `block`
+- **Rationale** — one or two sentences explaining the verdict
+- **Edits** — if the verdict is `edit`, include the rewritten artifact
+- **Hold reason** — if the verdict is `hold`, why a human needs to see this
+- **Block reason** — if the verdict is `block`, which rule was crossed
+- **Findings** — what each lens noticed and suggested, grouped by severity
+- **Honesty about the panel** — which lenses ran, which model was used, whether the
+  panel was degraded (no dedicated reviewer, the reviewer model was unreachable, or one
+  of the lenses dropped out)
 
 | Verdict   | Meaning                                                                     |
 | --------- | --------------------------------------------------------------------------- |

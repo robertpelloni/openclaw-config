@@ -41,20 +41,14 @@
 
 ## Output
 
-```json
-{
-  "lens": "ai-tropes",
-  "findings": [
-    {
-      "severity": "high|med|low",
-      "issue": "Em dash on line 3",
-      "suggestion": "Replace with comma"
-    }
-  ],
-  "verdict_signal": "block" | "hold" | "edit" | "pass",
-  "proposed_edit": "<rewritten artifact, optional>"
-}
-```
+Tell us what you noticed, in plain language. For each finding: tag it with severity (low
+/ med / high), describe the issue (cite the line if helpful), and offer a suggestion.
+Give a verdict signal at the end: `pass`, `edit`, `hold`, or `block`. If your signal is
+`edit`, include a rewritten artifact.
+
+Example finding:
+
+> **high** — Em dash on line 3. **Suggestion:** replace with a comma.
 
 ## Severity guidance
 

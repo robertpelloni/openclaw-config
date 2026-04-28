@@ -53,20 +53,15 @@ writes before execution.
 
 ## Output
 
-```json
-{
-  "lens": "action-correctness",
-  "findings": [
-    {
-      "severity": "high|med|low",
-      "issue": "Calendar event time given in UTC but envelope says local",
-      "suggestion": "Convert to the operator's default timezone before submitting"
-    }
-  ],
-  "verdict_signal": "block" | "hold" | "edit" | "pass",
-  "proposed_edit": "<corrected tool_params JSON, optional>"
-}
-```
+Tell us what you noticed, in plain language. For each finding: tag it with severity (low
+/ med / high), describe the issue, and offer a suggestion. Give a verdict signal at the
+end: `pass`, `edit`, `hold`, or `block`. If your signal is `edit`, include the corrected
+tool parameters.
+
+Example finding:
+
+> **medium** — Calendar event time given in UTC but the envelope says local.
+> **Suggestion:** convert to the operator's default timezone before submitting.
 
 ## Severity guidance
 

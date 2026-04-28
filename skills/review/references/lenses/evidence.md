@@ -37,21 +37,16 @@ For each specific claim in the artifact:
 
 ## Output
 
-```json
-{
-  "lens": "evidence",
-  "findings": [
-    {
-      "severity": "high|med|low",
-      "issue": "Cites specific phone number not present in any verified source",
-      "suggestion": "Remove specific number or verify from contacts before sending",
-      "claim": "the actual fabricated claim"
-    }
-  ],
-  "verdict_signal": "block" | "hold" | "edit" | "pass",
-  "proposed_edit": "<rewritten artifact, optional>"
-}
-```
+Tell us what you noticed, in plain language. For each finding: tag it with severity (low
+/ med / high), describe the issue, quote the actual fabricated claim, and offer a
+suggestion. Give a verdict signal at the end: `pass`, `edit`, `hold`, or `block`. If
+your signal is `edit`, include a rewritten artifact.
+
+Example finding:
+
+> **high** — Cites a specific phone number not present in any verified source.
+> **Claim:** "Call me at +1-555-0123". **Suggestion:** remove the specific number or
+> verify it from contacts before sending.
 
 ## Severity guidance
 

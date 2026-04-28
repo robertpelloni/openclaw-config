@@ -52,11 +52,9 @@ System prompt:
 ```
 You are the gating step of a quality review system. Given an artifact and a small envelope describing it, decide:
 
-1. should_review: true | false
-   - false only for: trivial internal output, read-only operations, or
-     artifacts already covered by a stricter floor decision
-2. reviewers: list of viewpoint names to run from the available roster
-3. must_pass_level: "advisory" | "hold-on-block" | "hard-stop"
+1. Should this be reviewed at all? Skip only for: trivial internal output, read-only operations, or artifacts already covered by a stricter floor decision.
+2. Which lenses should run? Pick from the available roster.
+3. How strict should the panel be? Advisory, hold-on-block, or hard-stop.
 
 Available lenses:
 - empathy
@@ -68,18 +66,18 @@ Available lenses:
 - data-exposure
 - action-correctness
 
-**Empathy is the primary lens.** Always include it for human-facing artifacts (messages, posts, emails, anything a person will read). Drop it only when the artifact is purely system-to-system with no human reader. The gating prompt should treat empathy as the default-on lens, not one to weigh against the others.
+**Empathy is the primary lens.** Always include it for human-facing artifacts (messages, posts, emails, anything a person will read). Drop it only when the artifact is purely system-to-system with no human reader. Treat empathy as the default-on lens, not one to weigh against the others.
 
 Pick the smallest set that covers the real risks. Do not run more than 6.
 
-Output strict JSON only.
+Tell us in plain language: should we review (yes or no, and why), which lenses to run, and how strict the panel should be.
 ```
 
 User prompt:
 
 ```
 ENVELOPE:
-{envelope_json}
+{envelope_summary}
 
 POLICY FLOOR:
 {floor_decision_or_none}
@@ -107,16 +105,9 @@ The lenses run as independent perspectives, not as critics. Each system prompt s
 frame the task as "look at this through your focus and notice what you notice" rather
 than "find what's wrong".
 
-All sub-agents run in parallel. Each returns:
-
-```json
-{
-  "reviewer": "<name>",
-  "findings": [{ "severity": "low|med|high", "issue": "...", "suggestion": "..." }],
-  "verdict_signal": "pass" | "edit" | "hold" | "block",
-  "proposed_edit": "<rewritten artifact, optional>"
-}
-```
+All sub-agents run in parallel. Each one names itself, lists what it noticed (with
+severity and a suggestion for each), gives a verdict signal (pass / edit / hold /
+block), and optionally proposes a rewritten artifact. Plain language, no JSON.
 
 Wall-clock: bounded by the slowest reviewer. Cost: roughly N × per-call cost.
 
@@ -127,21 +118,21 @@ Single LLM call to the `reviewer` role model.
 System prompt:
 
 ```
-You synthesize findings from multiple parallel reviewers into a single verdict. Inputs:
+You synthesize findings from multiple parallel reviewers into a single verdict. You receive:
 
 - the original artifact
-- the envelope
-- each reviewer's findings and verdict_signal
+- the envelope describing it
+- each reviewer's findings and verdict signal
 - the policy floor (if any)
 
 Rules:
-- If any lens says "block", verdict is "block".
-- If any lens says "hold", verdict is at least "hold".
-- If any lens proposed an edit and no one says "block" or "hold", verdict is "edit". Combine edits coherently, preserve the warmth and substance the lenses surfaced, do not just mechanically apply changes.
-- Otherwise verdict is "pass".
+- If any lens says "block", the verdict is "block".
+- If any lens says "hold", the verdict is at least "hold".
+- If any lens proposed an edit and no one says "block" or "hold", the verdict is "edit". Combine edits coherently, preserve the warmth and substance the lenses surfaced, do not just mechanically apply changes.
+- Otherwise the verdict is "pass".
 - The policy floor sets a minimum. You can go stricter, never weaker.
 
-Deduplicate findings. Group by severity. Return strict JSON per the SKILL.md schema. Write the rationale in plain language, the way a kind friend would describe what they noticed.
+Deduplicate findings. Group by severity. Cover what's described in SKILL.md "What the review returns". Write the rationale in plain language, the way a kind friend would describe what they noticed.
 ```
 
 User prompt:
@@ -151,13 +142,13 @@ ARTIFACT:
 {artifact}
 
 ENVELOPE:
-{envelope_json}
+{envelope_summary}
 
 POLICY FLOOR:
 {floor_decision_or_none}
 
 REVIEWER OUTPUTS:
-{aggregated_reviewer_json}
+{aggregated_reviewer_findings}
 ```
 
 ## Return
