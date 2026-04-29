@@ -271,18 +271,17 @@ For each tier ≥ 3 finding, produce a **proposal packet** in
 ## Diff (if tier 4+)
 ```patch
 ...unified diff...
+```
 ````
 
-```
-
-For tier 3, also create an Asana task in the project from `TOOLS.md`, tagged
-with the `ecosystem-intel` source tag (create the tag if missing). Link the
-proposal packet in the task notes.
+For tier 3, also create an Asana task in the project from `TOOLS.md`, tagged with the
+`ecosystem-intel` source tag (create the tag if missing). Link the proposal packet in
+the task notes.
 
 For tier 4, prefer a draft PR against `openclaw-config` on a branch named
-`eco/<date>-<slug>`. If `gh` is authenticated for the repo, open the PR as
-draft with the proposal packet as the body. Otherwise, commit the branch and
-surface it in the morning brief with `git` instructions.
+`eco/<date>-<slug>`. If `gh` is authenticated for the repo, open the PR as draft with
+the proposal packet as the body. Otherwise, commit the branch and surface it in the
+morning brief with `git` instructions.
 
 For tier 5, apply the change, commit on `main` with trailer
 `X-Ecosystem-Intel-Auto: v1`, and append to `agent_notes.md#auto_applied`.
@@ -291,8 +290,8 @@ For tier 5, apply the change, commit on `main` with trailer
 
 ## Phase 5: Integrate + Morning Brief
 
-Once a day (07:30 CT by default), deliver a **morning brief** to the human
-via the configured channel (Telegram `📋 Automation` by default):
+Once a day (07:30 CT by default), deliver a **morning brief** to the human via the
+configured channel (Telegram `📋 Automation` by default):
 
 ```
 
@@ -308,7 +307,7 @@ Top findings:
 
 Auto-applied: <count> (<links>) Watchlist size: <n> Precision last 30d: <pct>%
 
-````
+```
 
 Hard caps:
 
@@ -323,15 +322,15 @@ Hard caps:
 
 The `learning-loop` workflow owns corrections. This workflow contributes by:
 
-- Writing corrections to `memory/learning/corrections.md` when a proposal is
-  rejected with reasoning (human's message becomes the correction body)
+- Writing corrections to `memory/learning/corrections.md` when a proposal is rejected
+  with reasoning (human's message becomes the correction body)
 - Reading `workflows/ecosystem-intel/agent_notes.md` at the start of every run
-- Updating `telemetry.json` with per-source precision so low-signal sources
-  decay in influence
+- Updating `telemetry.json` with per-source precision so low-signal sources decay in
+  influence
 
-If the `learning-loop` promotes a rule that applies to this workflow (for
-example, "never surface single-vendor marketing posts"), it lands in
-`agent_notes.md` automatically — no change needed here.
+If the `learning-loop` promotes a rule that applies to this workflow (for example,
+"never surface single-vendor marketing posts"), it lands in `agent_notes.md`
+automatically — no change needed here.
 
 ---
 
@@ -357,7 +356,7 @@ openclaw cron add --name "ecosystem-intel-brief" \
   --delivery-to "<your-chat-id>" \
   --model simple --timeout-seconds 300 \
   --message "Deliver today's ecosystem-intel morning brief. Read workflows/ecosystem-intel/AGENT.md Phase 5 and follow it."
-````
+```
 
 Scheduler choices:
 

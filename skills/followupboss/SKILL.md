@@ -16,6 +16,8 @@ triggers:
 metadata:
   openclaw:
     emoji: "🏠"
+    homepage: https://github.com/TechNickAI/openclaw-config/tree/main/skills/followupboss
+    category: integrations
     apiKey:
       env: FUB_API_KEY
       getFrom: https://app.followupboss.com → Admin → API

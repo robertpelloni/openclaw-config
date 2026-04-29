@@ -18,7 +18,12 @@ triggers:
 metadata:
   openclaw:
     emoji: "\U0001F4F7"
+    homepage: https://github.com/TechNickAI/openclaw-config/tree/main/skills/apple-photos
+    category: integrations
     platform: macos
+    os: [darwin]
+    requires:
+      bins: [osxphotos]
 ---
 
 # Apple Photos

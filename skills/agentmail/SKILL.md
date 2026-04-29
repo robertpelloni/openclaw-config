@@ -18,6 +18,8 @@ triggers:
 metadata:
   openclaw:
     emoji: "\U0001F4EC"
+    homepage: https://github.com/TechNickAI/openclaw-config/tree/main/skills/agentmail
+    category: integrations
     apiKey:
       env: AGENTMAIL_API_KEY
       getFrom: https://agentmail.to → Dashboard → API Keys
