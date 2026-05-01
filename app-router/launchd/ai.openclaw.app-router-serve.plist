@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Restores Tailscale Serve config for the app router on boot.
+
+  Install:
+    cp this file ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/ai.openclaw.app-router-serve.plist
+
+  The script waits for tailscaled to become responsive before applying the config,
+  so it's safe to load unconditionally at boot even if Tailscale starts slowly.
+
+  If you change the port from 4242, update the script path below accordingly.
+  The script lives at ~/openclaw-apps/_registry/restore-tailscale-serve.sh
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>ai.openclaw.app-router-serve</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/nick/openclaw-apps/_registry/restore-tailscale-serve.sh</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/Users/nick/openclaw-apps/_registry/logs/tailscale-serve.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/nick/openclaw-apps/_registry/logs/tailscale-serve-error.log</string>
+</dict>
+</plist>
