@@ -20,6 +20,10 @@ The combined floor decision (strictest verdict + union of required reviewers) is
 the gating LLM, which must respect it. Don't stop at the first match — an artifact
 that's both public-facing and financial needs both floors applied.
 
+**Floor-required lenses override `never_run`.** If the operator's `rules.md` lists a
+lens in `never_run` but a matching floor requires it, the floor wins. Safety floors
+exist precisely because some checks cannot be skipped by preference.
+
 If any floor produces a hard `block`, the orchestrator returns immediately without
 running the panel.
 
