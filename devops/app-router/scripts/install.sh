@@ -21,6 +21,9 @@ copy_if_absent() {
     if [ -e "$dst" ] && [ "$FORCE" != "1" ]; then
         echo "  skip (exists): $dst"
     else
+        # Remove existing directory first — cp -R src dst nests src inside dst
+        # when dst already exists as a directory.
+        [ -d "$dst" ] && rm -rf "$dst"
         cp -R "$src" "$dst"
         echo "  wrote: $dst"
     fi
@@ -47,7 +50,7 @@ if [ -d "$LAUNCH_AGENT_DIR" ]; then
         echo "  skip (exists): $PLIST_DST"
     else
         mkdir -p "$LAUNCH_AGENT_DIR"
-        sed "s|<USER>|$USER|g" "$SRC/launchd/$PLIST_NAME" > "$PLIST_DST"
+        sed "s|&lt;USER&gt;|$USER|g" "$SRC/launchd/$PLIST_NAME" > "$PLIST_DST"
         echo "  wrote: $PLIST_DST"
         echo "  load with: launchctl bootstrap gui/\$(id -u) $PLIST_DST"
     fi

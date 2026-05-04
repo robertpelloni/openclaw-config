@@ -90,10 +90,16 @@ const safeNext = (slug, next) => {
   const fallback = `/${slug}/`;
   if (typeof next !== "string" || !next.startsWith(fallback)) return fallback;
   if (next.startsWith("//")) return fallback;
-  // Reject any traversal segment, even cosmetic — keeps logs clean and prevents
-  // a downstream consumer from seeing an unnormalized path.
+  // Reject traversal in raw and decoded forms. Decoding catches mixed encodings
+  // like .%2e or %2e. that bypass a literal-only check.
   if (/(?:^|\/)\.\.(?:\/|$)/.test(next)) return fallback;
-  if (/%2e%2e/i.test(next)) return fallback;
+  let decoded;
+  try {
+    decoded = decodeURIComponent(next);
+  } catch {
+    return fallback;
+  }
+  if (/(?:^|\/)\.\.(?:\/|$)/.test(decoded)) return fallback;
   return next;
 };
 
