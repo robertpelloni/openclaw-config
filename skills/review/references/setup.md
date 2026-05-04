@@ -134,8 +134,8 @@ Then proceed with the actual review the operator originally invoked.
 ## Lens Selection
 
 - always_run: [empathy]
-- never_run: [] # lenses to suppress entirely (use sparingly, the gating LLM is usually
-  right)
+- never_run: [] # lenses to suppress entirely (policy floors override this; use
+  sparingly)
 
 ## Custom Lenses
 
@@ -157,6 +157,7 @@ preferences as soft constraints in the gating prompt:
 >
 > - posture: <value> → adjust how many lenses you select
 > - always_run: <list> → include these in `lenses` no matter what
-> - never_run: <list> → exclude these from `lenses`
+> - never_run: <list> → exclude these from `lenses` (policy floors override this — if a
+>   floor requires a lens, it runs even if listed in `never_run`)
 > - custom_lens_dir contents: <list of .md files found> → consider including by name
 >   when relevant
