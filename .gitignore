@@ -3,6 +3,7 @@
 # Editor files
 # Local overrides
 # Logs
+# Node
 # OS files
 # Python
 # Secrets (should never be committed)
@@ -32,4 +33,5 @@
 Thumbs.db
 __pycache__/
 drafts/
+node_modules/
 uv.lock

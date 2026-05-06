@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    Restores Tailscale Serve config for the OpenClaw app router on boot.
+
+    Install: copy devops/app-router/scripts/restore-tailscale-serve.sh into
+    ~/openclaw-apps/_registry/restore-tailscale-serve.sh (chmod +x), then copy
+    this plist into ~/Library/LaunchAgents/ — substituting <USER> for your
+    macOS username — and `launchctl bootstrap gui/$(id -u) <plist>`.
+
+    Example: sed "s|&lt;USER&gt;|$USER|g" devops/app-router/launchd/ai.openclaw.app-router-serve.plist \
+                > ~/Library/LaunchAgents/ai.openclaw.app-router-serve.plist
+
+    The script waits for tailscaled to come up before applying the config, so
+    loading at boot is safe even if Tailscale starts slowly.
+
+    Override port (default 4242) or upstream by editing EnvironmentVariables.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ai.openclaw.app-router-serve</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/&lt;USER&gt;/openclaw-apps/_registry/restore-tailscale-serve.sh</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>APP_ROUTER_PORT</key>
+        <string>4242</string>
+        <key>APP_ROUTER_UPSTREAM</key>
+        <string>http://127.0.0.1:8080</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/&lt;USER&gt;/openclaw-apps/_registry/logs/tailscale-serve.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/&lt;USER&gt;/openclaw-apps/_registry/logs/tailscale-serve-error.log</string>
+</dict>
+</plist>
