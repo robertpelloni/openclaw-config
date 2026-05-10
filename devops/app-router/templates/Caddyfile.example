@@ -46,10 +46,12 @@
         reverse_proxy 127.0.0.1:3002
     }
 
-    # ── Catch-all index. Replace with your own landing page if you want a
-    #    directory of apps. Anything not matched above lands here. ────────
+    # ── Catch-all app index. Anything not matched above lands here.
+    #    Rooted at router/public so the rendered Caddyfile, restore
+    #    scripts, and logs stay out of the public web root. ─────────────
     handle {
-        header Content-Type "text/html; charset=utf-8"
-        respond `<!doctype html><html><body><h1>App Router</h1><p>No app at this path.</p></body></html>` 200
+        root * "<OPENCLAW_APPS_DIR>/router/public"
+        try_files {path} /index.html
+        file_server
     }
 }
