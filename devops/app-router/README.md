@@ -32,7 +32,7 @@ The deploy target on each machine is `~/openclaw-apps/`:
 ~/openclaw-apps/
   ecosystem.config.js              copy of templates/ecosystem.config.js.example
   auth-service/                    copy of devops/app-router/auth-service/
-  _registry/
+  router/
     Caddyfile                      copy of templates/Caddyfile.example
     restore-tailscale-serve.sh     copy of scripts/restore-tailscale-serve.sh
     logs/                          stdout/stderr for the launchd plist
@@ -59,15 +59,15 @@ Re-running is safe; existing files are skipped. Pass `--force` to overwrite.
 
 Edit `~/openclaw-apps/ecosystem.config.js` — set `AUTH_SECRET` (use
 `openssl rand -hex 32`), and fill in `APP_PASSWORD_<SLUG>`, `APP_TITLE_<SLUG>`, and
-`APP_DESC_<SLUG>` for any protected apps. Then edit
-`~/openclaw-apps/_registry/Caddyfile` to match.
+`APP_DESC_<SLUG>` for any protected apps. Then edit `~/openclaw-apps/router/Caddyfile`
+to match.
 
 Start everything under PM2:
 
 ```
 pm2 start ~/openclaw-apps/ecosystem.config.js
 pm2 start /opt/homebrew/bin/caddy --name caddy --interpreter none -- \
-  run --config ~/openclaw-apps/_registry/Caddyfile --adapter caddyfile
+  run --config ~/openclaw-apps/router/Caddyfile --adapter caddyfile
 pm2 save
 pm2 startup     # then run the printed sudo command
 ```
@@ -110,7 +110,7 @@ After editing both files:
 
 ```
 pm2 restart ecosystem.config.js          # or just `pm2 restart auth-service` for password-only changes
-caddy reload --config ~/openclaw-apps/_registry/Caddyfile --adapter caddyfile
+caddy reload --config ~/openclaw-apps/router/Caddyfile --adapter caddyfile
 ```
 
 The app is immediately live at `https://<host>:4242/<slug>/`.

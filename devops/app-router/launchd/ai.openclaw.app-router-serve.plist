@@ -4,7 +4,7 @@
     Restores Tailscale Serve config for the OpenClaw app router on boot.
 
     Install: copy devops/app-router/scripts/restore-tailscale-serve.sh into
-    ~/openclaw-apps/_registry/restore-tailscale-serve.sh (chmod +x), then copy
+    ~/openclaw-apps/router/restore-tailscale-serve.sh (chmod +x), then copy
     this plist into ~/Library/LaunchAgents/ — substituting <USER> for your
     macOS username — and `launchctl bootstrap gui/$(id -u) <plist>`.
 
@@ -23,7 +23,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/&lt;USER&gt;/openclaw-apps/_registry/restore-tailscale-serve.sh</string>
+        <string>/Users/&lt;USER&gt;/openclaw-apps/router/restore-tailscale-serve.sh</string>
     </array>
     <key>EnvironmentVariables</key>
     <dict>
@@ -35,8 +35,8 @@
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/Users/&lt;USER&gt;/openclaw-apps/_registry/logs/tailscale-serve.log</string>
+    <string>/Users/&lt;USER&gt;/openclaw-apps/router/logs/tailscale-serve.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/&lt;USER&gt;/openclaw-apps/_registry/logs/tailscale-serve-error.log</string>
+    <string>/Users/&lt;USER&gt;/openclaw-apps/router/logs/tailscale-serve-error.log</string>
 </dict>
 </plist>
