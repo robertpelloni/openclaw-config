@@ -38,9 +38,10 @@ render_if_absent() {
             echo "ERROR: placeholder <OPENCLAW_APPS_DIR> not found in $src" >&2
             exit 1
         fi
-        local tmp
+        local escaped_dest tmp
+        escaped_dest="$(printf '%s' "$DEST" | sed 's/[&\\|]/\\&/g')"
         tmp="$(mktemp "${dst}.XXXXXX")"
-        sed "s|<OPENCLAW_APPS_DIR>|$DEST|g" "$src" > "$tmp"
+        sed "s|<OPENCLAW_APPS_DIR>|${escaped_dest}|g" "$src" > "$tmp"
         mv "$tmp" "$dst"
         echo "  wrote: $dst"
     fi

@@ -47,7 +47,7 @@
     #    Rooted at router/public so the rendered Caddyfile, restore
     #    scripts, and logs stay out of the public web root. ─────────────
     handle {
-        root * <OPENCLAW_APPS_DIR>/router/public
+        root * "<OPENCLAW_APPS_DIR>/router/public"
         try_files {path} /index.html
         file_server
     }
