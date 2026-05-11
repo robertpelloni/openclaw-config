@@ -29,15 +29,34 @@ copy_if_absent() {
     fi
 }
 
+render_if_absent() {
+    local src="$1" dst="$2"
+    if [ -e "$dst" ] && [ "$FORCE" != "1" ]; then
+        echo "  skip (exists): $dst"
+    else
+        if ! grep -q '<OPENCLAW_APPS_DIR>' "$src"; then
+            echo "ERROR: placeholder <OPENCLAW_APPS_DIR> not found in $src" >&2
+            exit 1
+        fi
+        local escaped_dest tmp
+        escaped_dest="$(printf '%s' "$DEST" | sed 's/[&\\|]/\\&/g')"
+        tmp="$(mktemp "${dst}.XXXXXX")"
+        sed "s|<OPENCLAW_APPS_DIR>|${escaped_dest}|g" "$src" > "$tmp"
+        mv "$tmp" "$dst"
+        echo "  wrote: $dst"
+    fi
+}
+
 echo "[install] source: $SRC"
 echo "[install] target: $DEST"
 
-mkdir -p "$DEST/_registry/logs"
+mkdir -p "$DEST/router/logs" "$DEST/router/public"
 copy_if_absent "$SRC/auth-service" "$DEST/auth-service"
 copy_if_absent "$SRC/templates/ecosystem.config.js.example" "$DEST/ecosystem.config.js"
-copy_if_absent "$SRC/templates/Caddyfile.example" "$DEST/_registry/Caddyfile"
-copy_if_absent "$SRC/scripts/restore-tailscale-serve.sh" "$DEST/_registry/restore-tailscale-serve.sh"
-chmod +x "$DEST/_registry/restore-tailscale-serve.sh"
+render_if_absent "$SRC/templates/Caddyfile.example" "$DEST/router/Caddyfile"
+copy_if_absent "$SRC/templates/index.html" "$DEST/router/public/index.html"
+copy_if_absent "$SRC/scripts/restore-tailscale-serve.sh" "$DEST/router/restore-tailscale-serve.sh"
+chmod +x "$DEST/router/restore-tailscale-serve.sh"
 
 echo "[install] installing auth-service deps"
 (cd "$DEST/auth-service" && npm install --omit=dev --silent --no-audit --no-fund)
@@ -63,9 +82,9 @@ cat <<EOF
 Next steps:
   1. Edit $DEST/ecosystem.config.js — set AUTH_SECRET (openssl rand -hex 32)
      and any APP_PASSWORD_<SLUG> / APP_TITLE_<SLUG> / APP_DESC_<SLUG> entries.
-  2. Edit $DEST/_registry/Caddyfile to match.
+  2. Edit $DEST/router/Caddyfile to match.
   3. pm2 start $DEST/ecosystem.config.js && pm2 save
   4. pm2 start /opt/homebrew/bin/caddy --name caddy --interpreter none -- \\
-       run --config $DEST/_registry/Caddyfile --adapter caddyfile
+       run --config $DEST/router/Caddyfile --adapter caddyfile
   5. tailscale serve --bg --https=4242 http://127.0.0.1:8080
 EOF
